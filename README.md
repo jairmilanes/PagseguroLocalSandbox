@@ -5,7 +5,14 @@ Teste sua integração com as API´s V2 do PagSeguro em seu servidor local com f
 
 
 # Como Funciona #
-Para utilizar a sandbox basta executar o passo 1, redirecionando o acesso da api para seu servidor local, mas pode também configurar seu ssl local caso não o tenha feito ainda para garantir uma integração mais completa com a Sandbox.
+A Sandbox mascara as consultas feitas para a api do PagSeguro permitindo a testar todas as consultas antes de rodar testes com consultas reais já que o PagSeguro ainda não possui sua Sandbox para testes, ainda assim você não teria tudo localmente.
+
+
+# Configuração #
+Para utilizar a sandbox basta redirecionar a api do PagSeguro para seu servidor local, fazendo com que a Sandbox responda por todas as chamadas da api, mas pode também configurar seu ssl local caso não o tenha feito ainda para garantir uma integração mais completa com a Sandbox.
+A Sandbox reponde a maioria das consultas da Api do pagsguro utilizando a mesmo a url, tornando mais fácil sua utilização.
+Para começar a utilizar a Sandbox siga os passos abaixo.
+
 
 ## Crie uma entrada no hosts ##
 Crie uma entrada em seu arquivo de hosts para que sua integração não acesse mais o WS do PagSeguro e sim nossa Sandbox.
@@ -46,19 +53,27 @@ Os passos abaixo descrevem brevemente como configurar ssl em seu servidor local,
 
 [Clique aqui para ver o tutorial de configuração do ssl em seu servidor local.](https://github.com/layoutzweb/PagseguroLocalSandbox/wiki/Configurando-SSL-no-seu-servidor-local)
 
-### Tudo pronto! ###
-Agora basta reiniciar seu servidor apache, se tudo foi feito corretamente você poderá acessar a sandbox com a seguinte url:    
+--------------------------------------------------------------------------------
 
-<http://ws.pagseguro.uol.com.br>
+--------------------------------------------------------------------------------
+
+### Tudo pronto! ###
+Com estes passos executados você agora pode acessar o painel de transações <http://ws.pagseguro.uol.com.br> e começar a disparar requisições à Sandbox seguindo o fluxo normal da api do Pagseguro como descreve em sua [área para desenvolvedores](https://pagseguro.uol.com.br/v2/guia-de-integracao/index.html)
 
 Caso não funcione corretamente confira todos os caminhos, é a causa do problema na mairoria das vezes.
 
 
---------------------------------------------------------------------------------
+
+
 
 --------------------------------------------------------------------------------
 
-Caso tenha sugestões ou gostaria de contriguir para o projeto, utilize os forks e pull requests, para bugs utilise a área de "issues" aqui do github que irei analizar todos o quanto antes.
+--------------------------------------------------------------------------------
+
+Caso tenha sugestões ou gostaria de contribuir para o projeto, utilize os forks e pull requests, para bugs utilise a área de "issues" aqui do github que irei analizar todos o quanto antes.
+
+
+
 
 
 
