@@ -1,3 +1,4 @@
+![PagSeguro Sandbox logo](https://github.com/layoutzweb/PagseguroLocalSandbox/blob/master/img/logo.png?raw=true)
 PagSeguro Local SandBox
 ===============================================================
 
