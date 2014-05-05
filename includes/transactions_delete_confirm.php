@@ -12,7 +12,9 @@
     </div>
     </div>
 <script>
+var modal = $('#transaction_view');
 $('#transaction_delete').on('click', function(){
+	
 	var btn = $(this);
 	btn.button('loading');
 	var url = '<?php echo $this->url('delete');?>';
@@ -31,7 +33,7 @@ $('#transaction_delete').on('click', function(){
 		alert.fadeIn('fast');
 		alert_timeout = setTimeout(function(){
 			alert.fadeOut('fast', function(){alert.remove();});
-			$('#transaction_view').modal('hide');
+			modal.modal('hide');
 		},700);
 	})
 	.success(function(){

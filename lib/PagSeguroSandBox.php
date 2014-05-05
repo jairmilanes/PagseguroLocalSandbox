@@ -1,5 +1,15 @@
 <?php 
-
+/**
+ * Pagseguro Sandbox Class
+ * 
+ * Um ambiente de testes 100% integrado as API´s do Pagseguro
+ * tudo funciona normalmente sem que altere nenhuma linha de codigo.
+ * Crie transações, checkouts completos, escolha tipos e meios de pagemento,
+ * consulte transações por código ou intervalo de datas dentre outras funcionalidades.
+ * 
+ * @author Jair Milanes Junior
+ *
+ */
 class PagSeguroSandBox {
 	
 	/***** DM *****/
@@ -40,18 +50,22 @@ class PagSeguroSandBox {
 	
 	private $conn;
 	
-	/*************************************************************************
-	 * CONSTRUCTOR
-	*/
+/*************************************************************************
+ * CONSTRUCTOR
+ *************************************************************************/
+	
 	public function __construct(){
 		require BASE_PATH.'lib/SQLite3db.php';
 		$this->conn = new SQLite3Database(BASE_PATH.'pagseguro_sandbox.db');
 		$this->config = simplexml_load_file(BASE_PATH.'config.xml');		
 	}
 
-	/*************************************************************************
-	 * DASHPANEL
-	*/
+	
+	
+	
+/*************************************************************************
+ * DASHPANEL
+ *************************************************************************/
 	/**
 	 * Sandbox dashboard
 	 */
@@ -86,6 +100,10 @@ class PagSeguroSandBox {
 				if(!isset($params['port']) || empty($params['port']) ){
 					$errors['port'] = true;
 				}
+				
+				if(!isset($params['checkout_complete']) || empty($params['checkout_complete']) ){
+					$params['checkout_complete'] = 'redirect';
+				}
 	
 				if( count($errors) > 0 ){
 					die(json_encode($errors));
@@ -96,6 +114,7 @@ class PagSeguroSandBox {
 				$xml->notificationUrl = $params['notificationUrl'];
 				$xml->redirectUrl = $params['redirectUrl'];
 				$xml->port = $params['port'];
+				$xml->checkout_complete = $params['checkout_complete'];
 				
 				$string = $this->prepareXml($xml);
 	
@@ -109,43 +128,84 @@ class PagSeguroSandBox {
 		}
 		require BASE_PATH.'includes/settings_form.php';
 	}
+	
+	
+	
+	
+	
 
-	/*************************************************************************
-	 * PUBLIC UNTERFACE
-	*/
+/*************************************************************************
+ * PUBLIC UNTERFACE
+ *************************************************************************/
 	
 	/**
 	 * Simulates a PagSeguro transaction
 	 * returning a code ans date for rediraction
 	 */
 	public function checkout(){
-		
 		$this->order = $this->getParams();
-		
+
 		$code = $this->generateTransaction();
 
-		$xml = new SimpleXMLElement("<checkout/>");
-		$xml->code = $code;
-		$xml->date = date('Y-m-d\TH:i:s.\0\0\0P');//'2010-12-02T10:11:28.000-02:00';
+		$request_code = $this->saveCheckoutTransactionCode($code);
+		
 		// write xml file with proper formatting
-
 		$dom = new DOMDocument('1.0');
 		$dom->preserveWhiteSpace = false;
-		$dom->formatOutput = true;
+		//$dom->formatOutput = true;
 		$dom->xmlStandalone = true;
 		$dom->encoding = "ISO-8859-1";
-		$dom->loadXML( $xml->asXML() );
-
-		// Parser
-		$parser = new PagSeguroXmlParser($dom->saveXML());
-		// <transaction>
-		$data = $parser->getResult('checkout', true);
 		
-		$url = $this->config->domain.$this->config->redirectUrl;
-		$rs = $this->doRequest($url, array('transaction' => $data ), 'POST' );
+		if( false !== $request_code ){
 
-		// Server response
-		die($rs);
+			$checkout = $dom->createElement('checkout');
+			$dom->appendChild($checkout);
+			$checkout->appendChild($dom->createElement('code', (string)$request_code));
+			$checkout->appendChild($dom->createElement('date', date('Y-m-d\TH:i:s.\0\0\0P')));
+
+		} else {
+			
+			$errors = $dom->createElement('errors');
+			$dom->appendChild($errors);
+			$error = $dom->createElement('error');
+			$errors->appendChild($error);
+			$error->appendChild( $dom->createElement('code', 11039 ));
+			$error->appendChild( $dom->createElement('message', 'Malformed request XML' ));
+
+		}
+		
+		header('Content-Type: text/html; charset=ISO-8859-1');
+		echo $dom->saveXML();
+		exit;
+
+	}
+	
+	/**
+	 * Procceses the checkout information
+	 */
+	public function checkoutProcess(){
+		$code = $this->getParam('code');
+		if( $this->isRequest('post') ){
+			$paymentMethod = $this->getParam('paymentMethod');
+			$transaction = $this->loadTransaction($code);
+			
+			if( !empty($transaction) ){	
+				$xml = simplexml_load_string($transaction->xml);
+				$xml->paymentMethod->type = $paymentMethod['type'];
+				$xml->paymentMethod->code = $paymentMethod['code'];
+				$xml_str = $this->prepareXml($xml);
+
+				if( $this->updateTransaction($xml_str, $code) ){
+					die($code);
+				}
+			}
+			die(0);
+		}
+		$xml = $this->getTransactionByCheckoutCode($code);
+		if( !empty($xml) ){
+			require BASE_PATH.'includes/transaction_render_checkout.php';
+		}	
+		die(0);
 	}
 	
 	/**
@@ -159,18 +219,34 @@ class PagSeguroSandBox {
 			$transaction_code = $params['code'];
 
 			if( $this->setTransactionStatus($transaction_code, $status ) ){
-			
-				$notification = $this->generateNotification($transaction_code, $status);
-
-				if( false !== $notification ){
-					$url = $this->config->domain.$this->config->notificationUrl;
-
-					$rs = $this->doRequest($url, $notification, 'POST');
-					die($rs);
-				}
+				$rs = $this->_notify($transaction_code, $status);
+				die($rs);
 			}
 		}
 		die('Invalid request!');
+	}
+	
+	/**
+	 * Private notification method
+	 * 
+	 * @param string $transaction_code
+	 * @param string $status
+	 * @return mixed|boolean
+	 */
+	private function _notify($transaction_code, $status){
+		$notification = $this->generateNotification($transaction_code, $status);
+		if( false !== $notification ){
+			$url = $this->config->domain.$this->config->notificationUrl;
+			return $this->doRequest($url, $notification, 'POST');
+		}
+		return false;
+	}
+	
+	/**
+	 * Loads the checkout lightbox page
+	 */
+	public function embedded(){
+		require BASE_PATH.'includes/transaction_checkout_process.php';
 	}
 	
 	/**
@@ -213,7 +289,8 @@ class PagSeguroSandBox {
 		$rs = $this->loadTransaction($code, true);
 		if( $rs ){
 			$xml = simplexml_load_string($rs['xml']);
-			die($this->renderTransaction($xml));
+			require BASE_PATH.'includes/transaction_render_view.php';
+			die();
 		}
 		die('error');
 	}
@@ -235,101 +312,37 @@ class PagSeguroSandBox {
 	}
 	
 	/**
-	 * Render a complete transaction
+	 * Removes all transactions from database
 	 */
-	protected function renderTransaction($xml){
-		
-		echo "<div style=\"margin: 10px; padding: 10px;\" class=\"panel panel-info\">";
-		echo '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>';
-		echo "<ul class=\"nav nav-tabs\">";
-		echo "<li class=\"active\"><a href=\"#info\" data-toggle=\"tab\"><span class='glyphicon glyphicon-question-sign'></span>&nbsp;&nbsp;Info</a></li>";
-		echo "<li><a href=\"#sender\" data-toggle=\"tab\"><span class='glyphicon glyphicon-user'></span>&nbsp;&nbsp;Sender</a></li>";
-		echo "<li><a href=\"#items\" data-toggle=\"tab\"><span class='glyphicon glyphicon-shopping-cart'></span>&nbsp;&nbsp;Items</a></li>";
-		echo "<li><a href=\"#shipping\" data-toggle=\"tab\"><span class='glyphicon glyphicon-plane'></span>&nbsp;&nbsp;Shipping</a></li>";
-		echo "</ul>";
-
-		
-		echo '<div class="tab-content">';
-		
-			echo '<div class="tab-pane active" id="info">';
-			echo "<div class=\"panel panel-default\">";
-			echo "<ul class=\"list-group\">";
-				echo "<li class=\"list-group-item\"><h5><label>Code:</label> " . $xml->code . '</h5></li>';
-				echo "<li class=\"list-group-item\"><h5><label>Status:</label> <span class='label " . $this->getStatusClass($xml->status, 'label'). "'>" . $this->getStatusString($xml->status). '</h5></li>';
-				echo "<li class=\"list-group-item\"><h5><label>Reference:</label> " . $xml->reference . "</h5></li>";
-			echo "</ul>";
-			echo '</div>';
-			echo '</div>';
-			
-			
-			echo '<div class="tab-pane" id="sender">';
-				echo "<div class=\"panel panel-default\">";
-				//echo "<div class=\"panel-heading\">Sender data:</div>";
-				echo "<div class=\"panel-body\">";
-				echo "<ul class=\"list-group\">";
-				echo "<li class=\"list-group-item\"><label>Name:</label> " . $xml->sender->name . '</li>';
-				echo "<li class=\"list-group-item\"><label>Email:</label> " . $xml->sender->email . '</li>';
-				if ($xml->sender->phone) {
-					echo "<li class=\"list-group-item\"><label>Phone:</label> " . $xml->sender->phone->areaCode . " - " .
-							$xml->sender->phone->number.'</li>';
-				}
-				echo "</ul>";
-				echo "</div>";
-				echo "</div>";
-			echo '</div>';
-
-			
-			echo '<div class="tab-pane" id="items">';
-				echo "<div class=\"panel panel-default\">";
-				//echo "<div class=\"panel-heading\">Items data:</div>";
-				echo "<div class=\"panel-body\">";
-				if (is_array((array)$xml->items)) {
-					foreach ((array)$xml->items as $key => $item) {
-						echo "<ul class=\"list-group\">";
-						echo "<li class=\"list-group-item\"><label>Id:</label> " . $item->id . '</li>'; // prints the item id, p.e. I39
-						echo "<li class=\"list-group-item\"><label>Description:</label> " . $item->description .'</li>'; // prints the item description, p.e. Notebook prata
-						echo "<li class=\"list-group-item\"><label>Quantidade:</label> " . $item->quantity . '</li>'; // prints the item quantity, p.e. 1
-						echo "<li class=\"list-group-item\"><label>Amount:</label> " . $item->amount . '</li>'; // prints the item unit value, p.e. 3050.68
-						echo "</ul>";
-					}
-				}
-				echo "</div>";
-				echo "</div>";
-			echo '</div>';
-			
-			
-			echo '<div class="tab-pane" id="shipping">';
-				echo "<div class=\"panel panel-default\">";
-				//echo "<div class=\"panel-heading\">Shipping data:</div>";
-				echo "<div class=\"panel-body\">";
-				echo "<ul class=\"list-group\">";
-				if ($xml->shipping->address) {
-					echo "<li class=\"list-group-item\"><label>Postal code:</label> " . $xml->shipping->address->postalCode . '</li>';
-					echo "<li class=\"list-group-item\"><label>Street:</label> " . $xml->shipping->address->street . '</li>';
-					echo "<li class=\"list-group-item\"><label>Number:</label> " . $xml->shipping->address->number . '</li>';
-					echo "<li class=\"list-group-item\"><label>Complement:</label> " . $xml->shipping->address->complement . '</li>';
-					echo "<li class=\"list-group-item\"><label>District:</label> " . $xml->shipping->address->getDistrict . '</li>';
-					echo "<li class=\"list-group-item\"><label>City:</label> " . $xml->shipping->address->city . '</li>';
-					echo "<li class=\"list-group-item\"><label>State:</label> " . $xml->shipping->address->state . '</li>';
-					echo "<li class=\"list-group-item\"><label>Country:</label> " . $xml->shipping->address->country . '</li>';
-				}
-				echo "<li class=\"list-group-item\"><label>Shipping type:</label> " . $xml->shipping->type . '</li>';
-				echo "<li class=\"list-group-item\"><label>Shipping cost:</label> " . $xml->shipping->cost . '</li>';
-				echo "</ul>";
-				echo "</div>";
-				echo "</div>";
-			echo '</div>';
-		echo '</div>';
-		echo '<div class="footer">';
-		
-		echo "</div>";
-		echo "</div>";
+	public function removeAll(){
+		if( $this->isRequest('post')){
+			try {
+				$this->conn->query('BEGIN');
+				$this->conn->query('DROP TABLE transactions');
+				$this->conn->query('DROP TABLE notifications');
+				$this->conn->query('DROP TABLE transaction_codes');
+				$this->createTable('transactions');
+				$this->createTable('notifications');
+				$this->createTable('transaction_codes');
+				$this->conn->query('COMMIT');
+				
+				die('1');
+			} catch( Exception $e ){
+				$this->conn->query('ROLLBACK');
+				$this->log($e->getMessage());
+			}
+			die('0');
+		}
+		require BASE_PATH.'includes/transactions_wipe_confirm.php';
 	}
 	
+	
+	
+	
 
-	/*************************************************************************
-	 * NOTIFICATIONS CRUD METHODS
-	*/
+/*************************************************************************
+ * NOTIFICATIONS CRUD METHODS
+ *************************************************************************/
 	/**
 	 * Generates a fake notification
 	 * 
@@ -410,11 +423,8 @@ class PagSeguroSandBox {
 	 * @return boolean|array Transaction
 	 */
 	private function getTransactionByNotificationCode($code){
-		
 		try {
-			
 			$rs = $this->conn->get_row(sprintf('SELECT transaction_code FROM notifications WHERE id = "%s"', $code));
-			
 			if( !empty($rs)){
 				$transaction = $this->loadTransaction( $rs->transaction_code );
 				return ( !empty($transaction)? $transaction : false );
@@ -426,10 +436,15 @@ class PagSeguroSandBox {
 	}
 	
 	
-	/*************************************************************************
-	 * TRANSACTIONS CRUD METHODS
-	 */
 	
+	
+	
+	
+	
+	
+/*************************************************************************
+ * TRANSACTIONS CRUD METHODS
+ *************************************************************************/
 	/**
 	 * Gets all transactions from db
 	 * 
@@ -493,6 +508,43 @@ class PagSeguroSandBox {
 	}
 	
 	/**
+	 * Saves a transaction request code
+	 */
+	private function saveCheckoutTransactionCode($transaction_code){
+		$checkout_code = $this->generateRandomString(32);
+		$data = array(
+			'code' => $checkout_code,
+			'transaction_code' => $transaction_code
+		);
+		try {
+			if( $this->conn->insert('transaction_codes', $data) ){
+				return $checkout_code;
+			}
+		} catch( Exception $e ){
+			$this->log($e->getMessage());
+		}
+		return false;
+	}
+	
+	/**
+	 * Finds a transaction by checkout code
+	 * 
+	 * @param string $code
+	 * @return SimpleXMLElement|boolean
+	 */
+	private function getTransactionByCheckoutCode($code){
+		$sql = sprintf('SELECT transaction_code FROM transaction_codes WHERE code = "%s"', $code);
+		$rs = $this->conn->get_row($sql);
+		if( !empty( $rs ) ){
+			$transaction = $this->loadTransaction($rs->transaction_code);
+			if( !empty($transaction) ){
+				return simplexml_load_string($transaction->xml);
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * Updates a transaction
 	 * 
 	 * @param array $data
@@ -523,9 +575,14 @@ class PagSeguroSandBox {
 	}
 	
 	
-	/*************************************************************************
-	 * TRANSACTION GENERATION
-	 */
+	
+	
+	
+	
+/*************************************************************************
+ * TRANSACTION GENERATION
+ *************************************************************************/
+	
 	/**
 	 * Generate  fake transaction
 	 * 
@@ -566,10 +623,10 @@ class PagSeguroSandBox {
 		}
 	
 		// sender
-		$xml->sender->name = isset($this->order['senderName']) ?: "Mauro Turm";
-		$xml->sender->email = isset($this->order['senderEmail']) ?: "mauro@mail.com";
-		$xml->sender->phone->areaCode = isset($this->order['senderAreaCode']) ?: "31";
-		$xml->sender->phone->number = isset($this->order['senderPhone']) ?: "55555555";
+		$xml->sender->name = isset($this->order['senderName']) ? $this->order['senderName']: "Mauro Turm";
+		$xml->sender->email = isset($this->order['senderEmail']) ? $this->order['senderEmail']: "mauro@mail.com";
+		$xml->sender->phone->areaCode = isset($this->order['senderAreaCode']) ? $this->order['senderAreaCode']: "31";
+		$xml->sender->phone->number = isset($this->order['senderPhone']) ? $this->order['senderPhone']: "55555555";
 	
 		// shipping
 		$xml->shipping->address->street = isset($this->order['shippingAddressStreet']) ?
@@ -663,29 +720,15 @@ class PagSeguroSandBox {
 		return implode(", ", $missing_params);
 	}
 	
-	/*************************************************************************
-	 * CURL
-	*/
-	/*
-	private function doRequest($url, $type = 'get', $params = array() ){
-		$fp = fsockopen(self::NOTIFICATION_DOMAIN, self::NOTIFICATION_PORT, $errno, $errstr, 30);
-		$paramString = http_build_query($params);
-		if( $type == 'post' ){
-			$out = "POST ".$url." HTTP/1.1\r\n";
-		} else {
-			$out = "GET ".$url." HTTP/1.1\r\n";
-		}
-		$out.= "Host: ".self::NOTIFICATION_DOMAIN."\r\n";
-		$out.= "Connection: Close\r\n";
-		$out.= "Content-Type: application/x-www-form-urlencoded\r\n";
-		$out.= "Content-Length: ".strlen($paramString)."\r\n\r\n";
-		$out.= $paramString;
-		fwrite($fp, $out);
-		$response = stream_get_contents($fp);
-		fclose($fp);
-		return $response;
-	}
-	*/
+	
+	
+	
+	
+	
+/*************************************************************************
+ * CURL
+ *************************************************************************/
+	
 	/**
 	 * Simple curl request method
 	 *
@@ -704,10 +747,11 @@ class PagSeguroSandBox {
 				$opts[CURLOPT_POSTFIELDS] = http_build_query($data);
 			}
 		}
-	
 		$opts[CURLOPT_RETURNTRANSFER] = 1;
 		$opts[CURLOPT_URL] = $url;
-
+		$opts[CURLOPT_FOLLOWLOCATION] = 1;
+		
+		
 		curl_setopt_array($curl, $opts);
 		$result = curl_exec($curl);
 		$error = curl_error($curl);
@@ -718,9 +762,13 @@ class PagSeguroSandBox {
 	
 	
 	
-	/*************************************************************************
-	 * PARAMS RETRIVAL
-	*/
+	
+	
+	
+/*************************************************************************
+ * PARAMS RETRIVAL
+ *************************************************************************/
+	
 	/**
 	 * Tests request type
 	 * 
@@ -761,9 +809,15 @@ class PagSeguroSandBox {
 		return $data;
 	}
 	
-	/*************************************************************************
-	 * STATUS HELPERS
-	*/
+	
+	
+	
+	
+	
+/*************************************************************************
+ * STATUS HELPERS
+ *************************************************************************/
+	
 	/**
 	 * Converts a status numer to a readable string
 	 * 
@@ -797,18 +851,115 @@ class PagSeguroSandBox {
 		return '';
 	}
 	
+	/**
+	 * Processes a specific db file from the sql folder
+	 * 
+	 * @param string $name
+	 * @return Ambigous <boolean, unknown, string>|boolean
+	 */
+	private function createTable($name){
+		$db_file = BASE_PATH.'lib/sql/'.strtolower($name).'.sql';
+		if( file_exists($db_file)){
+			$sql = file_get_contents($db_file);
+			return $this->conn->query($sql);
+		}
+		return false;
+	}
+	
+	
+
+	
+	
+/*************************************************************************
+ * PAYMENT HELPERS
+*************************************************************************/
+	
+	/**
+	 * Returns the name of a payment type give it´s code
+	 * 
+	 * @param string $type
+	 * @return Ambigous <string>|string
+	 */
+	protected function translatePaymentType($type){
+		$types = array(
+			"1" => "1 - Cartão de crédito",
+			"2" => "2 - Boleto",
+			"3" => "3 - Débito online (TEF)",
+			"4" => "4 - Saldo PagSeguro",
+			"5" => "5 - Oi Paggo",
+			"7" => "7 - Depósito em conta"
+		);
+		if( array_key_exists((string)$type, $types)){
+			return $types[$type];
+		}
+		return '';
+	}
+	
+	/**
+	 * Returns the name of a payment method given it´s code
+	 * 
+	 * @param string $method
+	 * @return Ambigous <string>|string
+	 */
+	protected function translatePaymentMethod($method){
+		$methods = array(
+			"101" => "101 - Cartão de crédito Visa",
+			"102" => "102 - Cartão de crédito MasterCard",
+			"103" => "103 - Cartão de crédito American Express",
+			"104" => "104 - Cartão de crédito Diners",
+			"105" => "105 - Cartão de crédito Hipercard",
+			"106" => "106 - Cartão de crédito Aura",
+			"107" => "107 - Cartão de crédito Elo",
+			"108" => "108 - Cartão de crédito PLENOCard",
+			"109" => "109 - Cartão de crédito PersonalCard",
+			"110" => "110 - Cartão de crédito JCB",
+			"111" => "111 - Cartão de crédito Discover",
+			"112" => "112 - Cartão de crédito BrasilCard",
+			"113" => "113 - Cartão de crédito FORTBRASIL",
+			"114" => "114 - Cartão de crédito CARDBAN",
+			"115" => "115 - Cartão de crédito VALECARD",
+			"116" => "116 - Cartão de crédito Cabal",
+			"117" => "117 - Cartão de crédito Mais!",
+			"118" => "118 - Cartão de crédito Avista",
+			"119" => "119 - Cartão de crédito GRANDCARD",
+			"120" => "120 - Cartão de crédito Sorocred",
+			"202" => "202 - Boleto Santander",
+			"301" => "301 - Débito online Bradesco",
+			"302" => "302 - Débito online Itaú",
+			"304" => "304 - Débito online Banco do Brasil",
+			"306" => "306 - Débito online Banrisul",
+			"307" => "307 - Débito online HSBC",
+			"401" => "401 - Saldo PagSeguro",
+			"701" => "701 - Depósito em conta - Banco do Brasil",
+			"702" => "702 - Depósito em conta - HSBC"
+		);
+		
+		if( array_key_exists((string)$method, $methods)){
+			return $methods[$method];
+		}
+		return '';
+	}
+	
+	
+	
+	
 	/*************************************************************************
 	 * GENERAL HELPERS
-	*/
+	*************************************************************************/
 	
+	/**
+	 * Generates a snadbox action url
+	 *
+	 * @param action $action
+	 * @return string
+	 */
 	private function url($action){
 		return BASE_URL.'?action='.$action;
 	}
-
 	
 	/**
 	 * Prepares a simple xml string with Dom
-	 * 
+	 *
 	 * @param SimpleXMLElement $xml
 	 * @return string
 	 */
@@ -822,14 +973,11 @@ class PagSeguroSandBox {
 		return $dom->saveXML();
 	}
 	
-	/*
-	public function wipe() {
-		unlink($this->order_filename);
-		unlink($this->notification_filename);
-		unlink($this->transaction_filename);
-	}
-	*/
-	
+	/**
+	 * Gets current hostname
+	 *
+	 * @return string
+	 */
 	public function getCurrentHost() {
 		$host = $_SERVER['HTTP_HOST'];
 		$uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
@@ -838,7 +986,7 @@ class PagSeguroSandBox {
 	
 	/**
 	 * Generates a random string given it´s length
-	 * 
+	 *
 	 * @param number $length
 	 * @return string
 	 */
@@ -853,7 +1001,7 @@ class PagSeguroSandBox {
 	
 	/**
 	 * Simple log method
-	 * 
+	 *
 	 * @param string $msg
 	 * @return boolean
 	 */
@@ -864,6 +1012,7 @@ class PagSeguroSandBox {
 		fclose($file_handle);
 		return true;
 	}
+	
 }
 
 if( !function_exists('printR')){

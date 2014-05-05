@@ -1,7 +1,9 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /v2/transactions/notifications/
-RewriteRule ^index\.php$ - [L]
+
+RewriteRule ^(.*)/$ /v2/transactions/notifications/index.php?code=$1 [L,QSA]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 

@@ -1,22 +1,80 @@
+/* ==========================================================================
+   NAVBAR
+   ========================================================================== */
+#nav-bar a.navbar-brand {
+	display: block;
+	float: left;
+	height: 50px;
+	width: 170px;
+	background: url("../img/logo_nav_bar.png") no-repeat top left;
+	text-indent: -9999px;
+	overflow: hidden;
+}
+
+/* ==========================================================================
+   PAGE HEADER
+   ========================================================================== */
+#page-header {
+	width: 100%;
+}
 
 
 /* ==========================================================================
-   Author's custom styles
+   TRANSACTIONS TABLE
    ========================================================================== */
+#transactions_table .empty td>span {
+	display: block;
+	float: left;
+	font-size: 60px;
+	margin: 10px;
+	margin-right: 25px;
+	color: #888;
+}
 
 
 
 
+#settings .table td {
+	padding: 20px 8px;
+}
+#settings .form-group {
+	margin-bottom: 0;
+}
+#settings label {
+	font-size: 12px;
+}
+/* ==========================================================================
+   NOTIFICATIONS MODAL
+   ========================================================================== */
+#server_response {
+	margin-top: 20px;
+	border: 1px solid #ddd;
+	background: #eee;
+	padding: 15px;
+}
+
+#server_response h4 {
+	margin-top: 0;
+	border-bottom: 1px solid #ddd;
+	margin-bottom: 10px;
+}
 
 
 
+/* ==========================================================================
+   GENERIC MODAL
+   ========================================================================== */
+#transaction_view .tab-content .panel {
+	border-top: 0;
+}
 
+#transaction_view .tab-content label {
+	display: block;
+	float: left;
+	width: 40%;
+}
 
-
-
-
-
-
-
-
-
+#transaction_view .tab-content li {
+	display: block;
+	overflow: hidden;
+}

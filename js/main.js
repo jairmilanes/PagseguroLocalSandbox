@@ -37,7 +37,7 @@ $(document).ready(function(){
 	$('.clear_response').on('click', function(){
 		refreshResponse('');
 	});
-	
+
 	transactionsInit();
 
 });

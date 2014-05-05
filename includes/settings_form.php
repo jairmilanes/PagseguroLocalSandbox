@@ -3,37 +3,67 @@
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h4 class="modal-title">Configurações</h4>
       </div>
-      <div class="modal-body">
-      
-		  <div class="form-group">
-		    <label for="inputEmail3" class="col-sm-2 control-label">Dominio</label>
-		    <div class="col-sm-10">
-		      <input type=text class="form-control" id="domain" name="domain" placeholder="localhost.com" value="<?php echo $this->config->domain;?>">
-		    </div>
-		  </div>
-		  
-		  <div class="form-group">
-		    <label for="inputPassword3" class="col-sm-2 control-label">Url de notificação</label>
-		    <div class="col-sm-10">
-		      <input type="text" class="form-control" id="notificationUrl" name="notificationUrl"  placeholder="/notification.php" value="<?php echo $this->config->notificationUrl;?>">
-		    </div>
-		  </div>
-		  
-		  <div class="form-group">
-		    <label for="inputPassword3" class="col-sm-2 control-label">Url de redirecionamento</label>
-		    <div class="col-sm-10">
-		      <input type="text" class="form-control" id="redirectUrl" name="redirectUrl" placeholder="/success.php" value="<?php echo $this->config->redirectUrl;?>">
-		    </div>
-		  </div>
-		  
-		  <div class="form-group">
-		    <label for="inputPassword3" class="col-sm-2 control-label">Porta</label>
-		    <div class="col-sm-10">
-		      <input type="number" class="form-control" id="port" name="port" placeholder="80" value="<?php echo $this->config->port;?>">
-		    </div>
-		  </div>
-		  
-
+      <div class="modal-body" style="padding:0;">
+      	<table class="table table-hover" id="checkout_process_form">
+      		<tr>
+      			<td>
+				  <div class="form-group">
+				    <label for="inputEmail3" class="col-sm-4 col-md-4 control-label">Dominio</label>
+				    <div class="col-sm-7 col-md-7">
+				      <input type=text class="form-control" id="domain" name="domain" placeholder="localhost.com" value="<?php echo $this->config->domain;?>">
+				    </div>
+				    <div class="col-sm-1 col-md-1"><span class="glyphicon glyphicon-question-sign"></span></div>
+				  </div>
+			  </td>
+			</tr>
+			<tr>
+				<td>
+				  <div class="form-group">
+				    <label for="inputPassword3" class="col-sm-4 col-md-4 control-label">Url de notificação</label>
+				    <div class="col-sm-7 col-md-7">
+				      <input type="text" class="form-control" id="notificationUrl" name="notificationUrl"  placeholder="/notification.php" value="<?php echo $this->config->notificationUrl;?>">
+				    </div>
+				    <div class="col-sm-1 col-md-1"><span class="glyphicon glyphicon-question-sign"></span></div>
+				  </div>
+			  	</td>
+			</tr>
+			<tr>
+				<td>
+				  <div class="form-group">
+				    <label for="inputPassword3" class="col-sm-4 col-md-4 control-label">Url de redirecionamento</label>
+				    <div class="col-sm-7 col-md-7">
+				      <input type="text" class="form-control" id="redirectUrl" name="redirectUrl" placeholder="/success.php" value="<?php echo $this->config->redirectUrl;?>">
+				    </div>
+				    <div class="col-sm-1 col-md-1"><span class="glyphicon glyphicon-question-sign"></span></div>
+				  </div>
+				</td>
+			 </tr>
+			 <tr>
+			 	<td>
+				  <div class="form-group">
+				    <label for="inputPassword3" class="col-sm-4 col-md-4 control-label">Porta</label>
+				    <div class="col-sm-7 col-md-7">
+				      <input type="number" class="form-control" id="port" name="port" placeholder="80" value="<?php echo $this->config->port;?>">
+				    </div>
+				    <div class="col-sm-1 col-md-1"><span class="glyphicon glyphicon-question-sign"></span></div>
+				  </div>
+			 	</td>
+			</tr>
+			<tr>
+				<td>
+				  <div class="form-group">
+				    <label for="inputPassword3" class="col-sm-4 col-md-4 control-label">Porta</label>
+				    <div class="col-sm-7 col-md-7">
+				    	<select name="checkout_complete" class="form-control" data-selected="<?php echo $this->config->checkout_complete;?>">
+				    		<option value="redirect">Redicionar</options>
+				    		<option value="append">Append</option>
+				    	</select>
+				    </div>
+				    <div class="col-sm-1 col-md-1"><span class="glyphicon glyphicon-question-sign"></span></div>
+				  </div>
+				</td>
+			</tr>
+		  </table>
 	</div>
     <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
