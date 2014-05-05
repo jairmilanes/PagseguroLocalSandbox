@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /checkout/embedded/
+RewriteRule ^index\.php$ - [L]
+RewriteRule ^i-ck.html$ i-ck.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^([^/]+)$ /checkout/embedded/i-ck.php?q=$1 [L,QSA]
+
+
+
+
+</IfModule>
