@@ -24,7 +24,7 @@ resultado.
 
 
 
-### Como funciona {.panel-title}
+### Como funciona
 
 A Sandbox mascara as consultas feitas à api do PagSeguro permitindo
 testar todas as consultas antes de rodar testes com consultas reais já
@@ -33,7 +33,7 @@ tudo localmente.
 
 
 
-### Instalação {.panel-title}
+### Instalação
 
 
 Para utilizar a sandbox basta redirecionar a api do PagSeguro para seu
@@ -53,7 +53,7 @@ das opções e compie os arquivos para uma pasa em seu servidor local
 neste exemplo utilizamos “/pg\_localsandbox”.
 
 
-### Criando virtual hosts {.panel-title}
+### Criando virtual hosts 
 
 É necessário adicionar duas entradas ao seu arquivo hosts ( Windows
 C:\\Windows\\System32\\Drivers\\etc ),as duas apontando para a para o
@@ -105,7 +105,7 @@ Com as entradas no arquivo hosts criadas e os vHosts configurados basta
 reiniciar seu Apache para que as alterações entrem em vigor.
 
 
-### Configuração {.panel-title}
+### Configuração 
 
 Quando acessar o painel pela primeira vez será necessário fornecer
 algumas informações, as mesmas informações fornecidas na configuração do
@@ -161,7 +161,7 @@ Integre o PagSeguro normalmente, o Sandbox irá masacarar todas as
 chamadas feitas a api.
 
 
-### Sandbox com ssl ( Opcional) {.panel-title}
+### Sandbox com ssl ( Opcional) 
 
 A utlização de ssl em seus testes locais podem não trazer tantos
 benefícios mas ajudam a garantir o funcionamento completo de sua
@@ -172,7 +172,7 @@ servidor local, lembrando que estes passos podem variar dependendo da
 configuração local de cada um.
 
 
-### Tudo pronto! {.panel-title}
+### Tudo pronto! 
 
 Com estes passos executados você agora pode acessar o painel de
 transações[http:\\/\\/ws.pagseguro.uol.com.br][] e começar a disparar
@@ -184,7 +184,7 @@ descreve em sua área para desenvolvedores.
 
 
 
-### Contato {.panel-title}
+### Contato 
 
 **Jair Milanes Junior**
 
