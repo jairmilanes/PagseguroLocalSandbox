@@ -67,6 +67,11 @@ function transactionsInit(){
 
 function reloadTable(){
 	$('#table_container').load( $('#table_container').data('refresh'), function(){
+		if( $('#transactions_table').find('tr.transaction').length > 0 ){
+			$('#sandbox .page-header a').addClass('active');	
+		} else {
+			$('#sandbox .page-header a').removeClass('active');	
+		}
 		transactionsInit();
 	});
 }

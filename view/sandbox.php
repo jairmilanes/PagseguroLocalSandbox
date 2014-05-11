@@ -56,9 +56,15 @@ body {
 		<div class="row">
 			<div id="page-header" class="page-header col-md-12 pull-left">
 				<h2 class="pull-left">Transações</h2>
+				<?php
+				$transactions = ResponseHelper::getInstance()->getData('transactions');
+				$class="";
+				if( count($transactions) > 0 ){
+					$class = 'active';
+				}?>
 				<a href="<?php echo UtilsHelper::url('wipe');?>" id="remove_all"
 					data-toggle="modal" data-target="#transaction_view"
-					class="btn btn-danger pull-right">Limpar transações</a>
+					class="btn btn-danger pull-right <?php echo $class;?>">Limpar transações</a>
 			</div>
 		</div>
 		
