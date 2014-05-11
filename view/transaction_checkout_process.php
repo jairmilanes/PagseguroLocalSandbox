@@ -25,7 +25,7 @@
         	html, iframe,
         	#checkout_proccess {
         		padding-top: 0;
-        		background: none !important;      	
+        		background: none !important;
         	}
         	#checkout_proccess a {
         		color: #5B8932;
@@ -59,7 +59,8 @@
         	}
         </style>
     </head>
-    <body id="checkout_proccess" class="<?php echo $this->config->checkout_complete;?>">	
+   
+    <body id="checkout_proccess" class="<?php echo ConfigHelper::getInstance()->get('checkout_complete');?>">
     	<a href="#" id="checkout_modal_trigger" data-toggle="modal" data-target="#checkout_modal"></a>
  
     	<div id="checkout_modal" class="modal fade">
@@ -69,7 +70,7 @@
 		        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 		        <h4 class="modal-title">Pagseguro</h4>
 		      </div>
-		      <div class="modal-body order" data-load="<?php echo $this->url('checkout_process');?>">
+		      <div class="modal-body order" data-load="<?php echo UtilsHelper::url('checkout_process');?>">
 		        <div class="row transaction"></div>
 		      </div>
 		      <div class="modal-footer">
@@ -79,7 +80,7 @@
 		    </div>
 		  </div>
 		</div>
-
+ 
     	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="<?php echo BASE_URL.'js/vendor/jquery-1.11.0.min.js'?>"><\/script>')</script>
         <script src="<?php echo BASE_URL.'js/vendor/bootstrap.min.js'?>"></script>
@@ -91,7 +92,7 @@
 	    	// Listens to postMessages from parent window
 	    	function listenMessage(event) {
 	    		var data = JSON.parse(event.data);
-	    		console.log(data);
+	    		
 	    		if( data.command == 'setToken' ){
 	    			$('#checkout_proccess .order').trigger( 'token_set', data );
 	    		}

@@ -1,40 +1,22 @@
-<?php 
+<?php
 /**
  * Pagseguro Sandbox Class
- * 
+ *
  * Um ambiente de testes 100% integrado as API´s do Pagseguro
  * tudo funciona normalmente sem que altere nenhuma linha de codigo.
  * Crie transações, checkouts completos, escolha tipos e meios de pagemento,
  * consulte transações por código ou intervalo de datas dentre outras funcionalidades.
- * 
+ *
  * @author Jair Milanes Junior
  *
  */
 class PagSeguroSandBox {
-	
-	/***** DM *****/
-	const ORDER_TABLENAME 		  = 'orders';
-	const NOTIFICATION_TABLENAME  = 'notifications';
-	const TRANSACTION_TABLENAME   = 'transactions';
-	
-	const LOG_FILE 				  = 'sandbox.log';
-	
-	/**** DON'T EDIT THE CODE BELOW UNLESS YOU KNOW WHAT YOU ARE DOING ****/
+
 	const NOTIFICATION_CODE_LENGTH = 39;
-	const TRANSACTION_CODE_LENGTH = 36;
+	
 	
 	private $order;
 	private $notification;
-	private $required_data = array(
-			"token", 
-			"currency", 
-			"email", 
-			"itemId1", 
-			"itemDescription1", 
-			"itemQuantity1", 
-			"itemAmount1",
-			"redirectURL"
-		);
 	
 	private $transaction_possible_status = array(
 			"1" => "Aguardando pagamento",
@@ -50,89 +32,48 @@ class PagSeguroSandBox {
 	
 	private $conn;
 	
-/*************************************************************************
- * CONSTRUCTOR
- *************************************************************************/
-	
+	/**
+	 * PagSeguroSandBox construnctor
+	 */
 	public function __construct(){
-		require BASE_PATH.'lib/SQLite3db.php';
-		$this->conn = new SQLite3Database(BASE_PATH.'pagseguro_sandbox.db');
-		$this->config = simplexml_load_file(BASE_PATH.'config.xml');		
+		$this->config = ConfigHelper::getInstance();
 	}
 
-	
-	
-	
-/*************************************************************************
- * DASHPANEL
- *************************************************************************/
 	/**
 	 * Sandbox dashboard
 	 */
 	public function sandbox(){
-		require BASE_PATH.'includes/sandbox.php';
+		//require BASE_PATH.'includes/sandbox.php';
+		$model = new TransactionsModel();
+		$transactions = $model->getTransactions();
+		ResponseHelper::getInstance()->render('sandbox', array('transactions' => $transactions, 'config' => $this->config->asXml()));
 	}
 	
 	/**
 	 * Transactions table refresh
 	 */
 	public function refresh(){
-		require BASE_PATH.'includes/transactions_table.php';
+		$model = new TransactionsModel();
+		$transactions = $model->getTransactions();
+		ResponseHelper::getInstance()->render('transactions_table', array('transactions' => $transactions));
 	}
 	
 	/**
 	 * Sandbox settings form
 	 */
 	public function settings(){
-		if( $this->isRequest('POST') ){
-			$params = $this->getParams();
+		if( RequestHelper::isRequest('POST') ){
+			$params = RequestHelper::getParams();
 			try {
-				$errors = array();
-				if(!isset($params['domain']) || empty($params['domain']) ){
-					$errors['domain'] = true;
-				}
-				if(!isset($params['notificationUrl']) || empty($params['notificationUrl']) ){
-					$errors['notificationUrl'] = true;
-				}
-				if(!isset($params['redirectUrl']) || empty($params['redirectUrl']) ){
-					$errors['redirectUrl'] = true;
-				}
-				if(!isset($params['port']) || empty($params['port']) ){
-					$errors['port'] = true;
-				}
-				
-				if(!isset($params['checkout_complete']) || empty($params['checkout_complete']) ){
-					$params['checkout_complete'] = 'redirect';
-				}
-	
-				if( count($errors) > 0 ){
-					die(json_encode($errors));
-				}
-				
-				$xml = new SimpleXMLElement('<config/>');
-				$xml->domain = $params['domain'];
-				$xml->notificationUrl = $params['notificationUrl'];
-				$xml->redirectUrl = $params['redirectUrl'];
-				$xml->port = $params['port'];
-				$xml->checkout_complete = $params['checkout_complete'];
-				
-				$string = $this->prepareXml($xml);
-	
-				$file_handle = fopen(BASE_PATH.'config.xml', 'w') or die("can't open log file");
-				fwrite($file_handle, $string);
-				fclose($file_handle);
+				SettingsHelper::save($params);
 			} catch( Exception $e ){
 				die('0');
 			}
 			die('1');
 		}
-		require BASE_PATH.'includes/settings_form.php';
+		ResponseHelper::getInstance()->render('settings_form', array('config' => $this->config->asXml() ));
 	}
-	
-	
-	
-	
-	
+
 
 /*************************************************************************
  * PUBLIC UNTERFACE
@@ -143,26 +84,55 @@ class PagSeguroSandBox {
 	 * returning a code ans date for rediraction
 	 */
 	public function checkout(){
-		$this->order = $this->getParams();
-
-		$code = $this->generateTransaction();
-
-		$request_code = $this->saveCheckoutTransactionCode($code);
 		
-		// write xml file with proper formatting
-		$dom = new DOMDocument('1.0');
-		$dom->preserveWhiteSpace = false;
-		//$dom->formatOutput = true;
-		$dom->xmlStandalone = true;
-		$dom->encoding = "ISO-8859-1";
+		$dom = UtilsHelper::newDOM();
+		
+		$token = RequestHelper::getParam('token');
+		$email = RequestHelper::getParam('email');
+		
+		$errors = $dom->createElement('errors');
+		$istokenValid = true;
+		if( !validateHelper::isValidToken($token) ){
+			$dom->appendChild($errors);
+			$error = $dom->createElement('error');
+			$errors->appendChild($error);
+			$error->appendChild( $dom->createElement('code', 10002 ));
+			$error->appendChild( $dom->createElement('message', 'Token is required.' ));
+			$istokenValid = false;
+		}
+		$isEmailValid= true;
+		if( !validateHelper::isValidEmail($email)){
+			if( !$istokenValid ){
+				$dom->appendChild($errors);
+			}
+			$error = $dom->createElement('error');
+			$errors->appendChild($error);
+			$error->appendChild( $dom->createElement('code', 10003 ));
+			$error->appendChild( $dom->createElement('message', 'Email invalid value.' ));
+			$isEmailValid = false;
+		}
+		if(!$istokenValid || !$isEmailValid){
+			ResponseHelper::getInstance()->renderXml($dom->saveXML(), 'ISO-8859-1', 400);
+		}
+		
+		
+		$this->order = RequestHelper::getParams();
+
+		$code = TransactionsHelper::generateTransaction( $this->order );
+		$model = new TransactionCodesModel();
+		
+		$request_code = $model->save($code);
+
+		
 		
 		if( false !== $request_code ){
-
+			
 			$checkout = $dom->createElement('checkout');
 			$dom->appendChild($checkout);
 			$checkout->appendChild($dom->createElement('code', (string)$request_code));
 			$checkout->appendChild($dom->createElement('date', date('Y-m-d\TH:i:s.\0\0\0P')));
-
+			ResponseHelper::getInstance()->renderXml($dom->saveXML(), 'ISO-8859-1');
+			
 		} else {
 			
 			$errors = $dom->createElement('errors');
@@ -171,12 +141,9 @@ class PagSeguroSandBox {
 			$errors->appendChild($error);
 			$error->appendChild( $dom->createElement('code', 11039 ));
 			$error->appendChild( $dom->createElement('message', 'Malformed request XML' ));
-
+			ResponseHelper::getInstance()->renderXml($dom->saveXML(), 'ISO-8859-1', 400);
+			
 		}
-		
-		header('Content-Type: text/html; charset=ISO-8859-1');
-		echo $dom->saveXML();
-		exit;
 
 	}
 	
@@ -184,51 +151,64 @@ class PagSeguroSandBox {
 	 * Procceses the checkout information
 	 */
 	public function checkoutProcess(){
-		$code = $this->getParam('code');
-		if( $this->isRequest('post') ){
-			$paymentMethod = $this->getParam('paymentMethod');
-			$transaction = $this->loadTransaction($code);
+
+		$code = RequestHelper::getParam('code');
+
+		if( RequestHelper::isRequest('post') ){
+			$paymentMethod = RequestHelper::getParam('paymentMethod');
+			$model = new TransactionsModel();
+			$transaction = $model->get($code);
 			
-			if( !empty($transaction) ){	
+			if( !empty($transaction) ){
 				$xml = simplexml_load_string($transaction->xml);
 				$xml->paymentMethod->type = $paymentMethod['type'];
 				$xml->paymentMethod->code = $paymentMethod['code'];
-				$xml_str = $this->prepareXml($xml);
-
-				if( $this->updateTransaction($xml_str, $code) ){
-					die($code);
+				$xml_str = UtilsHelper::prepareXml($xml);
+				if( $model->update($xml_str, $code) ){
+					ResponseHelper::getInstance()->do200($code);
 				}
+			} else {
+				ResponseHelper::getInstance()->do400();
 			}
-			die(0);
 		}
-		$xml = $this->getTransactionByCheckoutCode($code);
+		$notificationsModel = new TransactionCodesModel();
+		$xml = $notificationsModel->getByCheckoutCode($code);
+
 		if( !empty($xml) ){
-			require BASE_PATH.'includes/transaction_render_checkout.php';
-		}	
-		die(0);
+			$type = RequestHelper::getParam('type');
+			switch($type){
+				case 'full':
+					ResponseHelper::getInstance()->render('transaction_render_fullcheckout', array('xml' => $xml));
+					break;
+				default:
+					ResponseHelper::getInstance()->render('transaction_render_checkout', array('xml' => $xml));
+					break;
+			}
+		}
+		ResponseHelper::getInstance()->do400();
 	}
 	
 	/**
 	 * Generates a PagSeguro fake notification
 	 */
 	public function notify(){
-		if( $this->isRequest('POST') ){
-			$params = $this->getParams();
-			
+		if( RequestHelper::isRequest('POST') ){
+			$params = RequestHelper::getParams();
 			$status = $params['status'];
 			$transaction_code = $params['code'];
-
-			if( $this->setTransactionStatus($transaction_code, $status ) ){
+			$model = new TransactionsModel();
+			if( $model->setStatus($transaction_code, $status ) ){
+				$model = null;
 				$rs = $this->_notify($transaction_code, $status);
 				die($rs);
 			}
 		}
-		die('Invalid request!');
+		ResponseHelper::getInstance()->do400();
 	}
 	
 	/**
 	 * Private notification method
-	 * 
+	 *
 	 * @param string $transaction_code
 	 * @param string $status
 	 * @return mixed|boolean
@@ -236,8 +216,8 @@ class PagSeguroSandBox {
 	private function _notify($transaction_code, $status){
 		$notification = $this->generateNotification($transaction_code, $status);
 		if( false !== $notification ){
-			$url = $this->config->domain.$this->config->notificationUrl;
-			return $this->doRequest($url, $notification, 'POST');
+			$url = $this->config->get('domain').$this->config->get('notificationUrl');
+			return RequestHelper::doRequest($url, $notification, 'POST');
 		}
 		return false;
 	}
@@ -246,94 +226,90 @@ class PagSeguroSandBox {
 	 * Loads the checkout lightbox page
 	 */
 	public function embedded(){
-		require BASE_PATH.'includes/transaction_checkout_process.php';
+		ResponseHelper::getInstance()->render('transaction_checkout_process');
 	}
 	
 	/**
 	 * Searches a transaction by notification code
 	 */
 	public function searchNotification(){
-		$params = $this->getParams();
+		$params = RequestHelper::getParams();
 		if( isset($params['code'])
 				&& isset($params['email']) && isset($params['token']) ){
-			$rs = $this->getTransactionByNotificationCode($params['code']);
+			$model = new NotificationsModel();
+			$rs = $model->getTransactionByNotificationCode($params['code']);
 			if( false !== $rs ){
 				$xml = simplexml_load_string($rs->xml);
 				die($xml->asXML());
 			}
+			ResponseHelper::getInstance()->do404();
+		} else {
+			ResponseHelper::getInstance()->do401();
 		}
-		die();
 	}
 	
 	/**
 	 * Searches a transaction by transaction code
 	 */
 	public function searchTransaction(){
-		$params = $this->getParams();
+		$params = RequestHelper::getParams();
 		if( isset($params['code'])
 				&& isset($params['email']) && isset($params['token']) ){
-			$rs = $this->loadTransaction($params['code']);
-			if( false !== $rs ){
+			$model = new TransactionsModel();
+			$rs = $model->get($params['code']);
+			if( !empty($rs) ){
 				$xml = simplexml_load_string($rs->xml);
 				die($xml->asXML());
 			}
+			ResponseHelper::getInstance()->do404();
+		} else {
+			ResponseHelper::getInstance()->do401();
 		}
-		die();
 	}
 
 	/**
 	 * View a specific transaction
 	 */
 	public function view(){
-		$code = $this->getParam('code');
-		$rs = $this->loadTransaction($code, true);
+		$code = RequestHelper::getParam('code');
+		$model = new TransactionsModel();
+		$rs = $model->get($code, true);
 		if( $rs ){
 			$xml = simplexml_load_string($rs['xml']);
-			require BASE_PATH.'includes/transaction_render_view.php';
-			die();
+			ResponseHelper::getInstance()->render('transaction_render_view', array('xml' => $xml));
 		}
-		die('error');
+		ResponseHelper::getInstance()->do404();
 	}
 
 	/**
 	 * Removes a transaction from db
 	 */
 	public function remove(){
-		$code = $this->getParam('code');
-		if( $this->isRequest('post') ){
-			if( $this->deleteTransaction($code) ){
-				$this->deleteNotificationByTransactionCode($code);
+		$code = RequestHelper::getParam('code');
+		if( RequestHelper::isRequest('post') ){
+			$model = new TransactionsModel();
+			if( $model->delete($code) ){
+				$model = new NotificationsModel();
+				$model->deleteByTransactionCode($code);
 				die('1');
 			}
 			die('0');
 		}
-		
-		require BASE_PATH.'includes/transactions_delete_confirm.php';
+		ResponseHelper::getInstance()->render('transactions_delete_confirm', array('code' => $code));
 	}
 	
 	/**
 	 * Removes all transactions from database
 	 */
 	public function removeAll(){
-		if( $this->isRequest('post')){
-			try {
-				$this->conn->query('BEGIN');
-				$this->conn->query('DROP TABLE transactions');
-				$this->conn->query('DROP TABLE notifications');
-				$this->conn->query('DROP TABLE transaction_codes');
-				$this->createTable('transactions');
-				$this->createTable('notifications');
-				$this->createTable('transaction_codes');
-				$this->conn->query('COMMIT');
-				
+		if( RequestHelper::isRequest('post')){
+			$model = new TransactionsModel();
+			if( $model->removeAll() ){
 				die('1');
-			} catch( Exception $e ){
-				$this->conn->query('ROLLBACK');
-				$this->log($e->getMessage());
 			}
 			die('0');
 		}
-		require BASE_PATH.'includes/transactions_wipe_confirm.php';
+		ResponseHelper::getInstance()->render('transactions_wipe_confirm');
 	}
 	
 	
@@ -345,88 +321,86 @@ class PagSeguroSandBox {
  *************************************************************************/
 	/**
 	 * Generates a fake notification
-	 * 
+	 *
 	 * @param string $transaction_code
 	 * @param string $status
 	 * @return boolean|array Notification
 	 */
 	private function generateNotification($transaction_code, $status){
-		$id = $this->generateRandomString(self::NOTIFICATION_CODE_LENGTH);
+		$id = UtilsHelper::generateRandomString(self::NOTIFICATION_CODE_LENGTH);
 
+		
 		$notification = array(
 			"notificationCode"  	=> $id,
 			"notificationType"  	=> 1,
 			"transactionStatus" 	=> $status,
-			"transactionTextStatus" => $this->transaction_possible_status[$status]
+			"transactionTextStatus" => UtilsHelper::getStatus($status)
 		);
 
 		$row = array(
 			'id'  => $id,
 			'transaction_code' => $transaction_code
 		);
-		
-		$this->deleteNotification($transaction_code);
-		
-		if( $this->saveNotification($row) ){
+		$model = new NotificationsModel();
+		$model->deleteByTransactionCode($transaction_code);
+
+		if( $model->save($row) ){
+			$model = null;
 			return $notification;
 		}
 		
 		return false;
 	}
 	
-	/**
-	 * Deletes a notification 
-	 * 
-	 * @param string $id
-	 */
-	private function deleteNotification($id){
-		try {
-			return $this->conn->delete('notifications', array('id'=>$id));
-		} catch( Exception $e ){
-			$this->log($e->getMessage());
-		}
-		return false;
+	public function help(){
+		
+		
+		
+		ResponseHelper::getInstance()->render('help');
 	}
 	
+	/**
+	 * Deletes a notification
+	 *
+	 * @param string $id
+	 
+	private function deleteNotification($id){
+		$model = new NotificationsModel();
+		return $model->delete($id);
+	}
+	*/
 	/**
 	 * Deletes a notification by transaction code
 	 *
 	 * @param string $code
-	 */
+	 
 	private function deleteNotificationByTransactionCode($code){
-		try {
-			return $this->conn->delete('notifications', array('transaction_code'=>$code));
-		} catch( Exception $e ){
-			$this->log($e->getMessage());
-		}
-		return false;
+		$model = new NotificationsModel();
+		return $model->deleteByTransactionCode($code);
 	}
-	
+	*/
 	/**
 	 * Saves a new notification
-	 * 
+	 *
 	 * @param array $data
-	 */
+	 
 	private function saveNotification($data){
-		try {
-			return $this->conn->insert('notifications', $data );
-		} catch( Exception $e ){
-			$this->log($e->getMessage());
-		}
-		return false;
+		$model = new NotificationsModel();
+		return $model->save($data);
 	}
-	
+	*/
 	/**
 	 * Gets a transaction by suplying a pregenerated notification code
-	 * 
+	 *
 	 * @param string $code
 	 * @return boolean|array Transaction
-	 */
+	
 	private function getTransactionByNotificationCode($code){
 		try {
 			$rs = $this->conn->get_row(sprintf('SELECT transaction_code FROM notifications WHERE id = "%s"', $code));
 			if( !empty($rs)){
-				$transaction = $this->loadTransaction( $rs->transaction_code );
+				$model = new TransactionsModel();
+				$transaction = $model->get( $rs->transaction_code );
 				return ( !empty($transaction)? $transaction : false );
 			}
 		} catch( Exception $e ){
@@ -434,7 +408,7 @@ class PagSeguroSandBox {
 		}
 		return false;
 	}
-	
+	*/
 	
 	
 	
@@ -447,43 +421,45 @@ class PagSeguroSandBox {
  *************************************************************************/
 	/**
 	 * Gets all transactions from db
-	 * 
+	 *
 	 * @return array()
-	 */
+	 
 	public function getTransactions(){
 		try {
 			return $this->conn->get_rows('SELECT code, xml, date FROM transactions ORDER BY date LIMIT 100');
 		} catch( Exception $e ){
-			$this->log($e->getMessages());
+			LogHelper::getInstance()->log($e->getMessages());
 		}
 		return array();
 	}
+	*/
 	
 	/**
 	 * Sets a existing transaction status
-	 * 
+	 *
 	 * @param string $code
 	 * @param string|status
-	 */
+	 
 	private function setTransactionStatus($code, $status){
-		$transaction = $this->loadTransaction($code);
+		$model = new TransactionsModel();
+		$transaction = $model->get($code);
 
 		if( $transaction && array_key_exists((string)$status, $this->transaction_possible_status) ){
 			$xml = simplexml_load_string($transaction->xml);
 			$xml->status = $status;
 			
-			$xml_str = $this->prepareXml($xml);
+			$xml_str = UtilsHelper::prepareXml($xml);
 
-			return $this->updateTransaction($xml_str, $code);
+			return $model->update($xml_str, $code);
 		}
 		return false;
 	}
-	
+	*/
 	/**
 	 * Gets a specific transaction by code
-	 * 
+	 *
 	 * @param string $code
-	 */
+	 
 	private function loadTransaction($code, $return_array = false){
 		try {
 			return $this->conn->get_row(sprintf('SELECT * FROM transactions WHERE code = "%s"', $code), $return_array);
@@ -492,12 +468,13 @@ class PagSeguroSandBox {
 		}
 		return false;
 	}
+	*/
 	
 	/**
 	 * Saves a new transaction to the database
-	 * 
+	 *
 	 * @param array $data
-	 */
+	 
 	private function saveTransaction($data){
 		try {
 			return $this->conn->insert('transactions', $data);
@@ -506,12 +483,12 @@ class PagSeguroSandBox {
 		}
 		return false;
 	}
-	
+	*/
 	/**
 	 * Saves a transaction request code
-	 */
+	 
 	private function saveCheckoutTransactionCode($transaction_code){
-		$checkout_code = $this->generateRandomString(32);
+		$checkout_code = UtilsHelper::generateRandomString(32);
 		$data = array(
 			'code' => $checkout_code,
 			'transaction_code' => $transaction_code
@@ -521,21 +498,23 @@ class PagSeguroSandBox {
 				return $checkout_code;
 			}
 		} catch( Exception $e ){
-			$this->log($e->getMessage());
+			LogHelper::getInstance()->log($e->getMessage());
 		}
 		return false;
 	}
-	
+	*/
 	/**
 	 * Finds a transaction by checkout code
-	 * 
+	 *
 	 * @param string $code
 	 * @return SimpleXMLElement|boolean
-	 */
+	 
 	private function getTransactionByCheckoutCode($code){
+		
 		$sql = sprintf('SELECT transaction_code FROM transaction_codes WHERE code = "%s"', $code);
 		$rs = $this->conn->get_row($sql);
 		if( !empty( $rs ) ){
+			
 			$transaction = $this->loadTransaction($rs->transaction_code);
 			if( !empty($transaction) ){
 				return simplexml_load_string($transaction->xml);
@@ -543,37 +522,37 @@ class PagSeguroSandBox {
 		}
 		return false;
 	}
-	
+	*/
 	/**
 	 * Updates a transaction
-	 * 
+	 *
 	 * @param array $data
 	 * @param string $code
-	 */
+	 
 	private function updateTransaction($xml, $code){
 		try {
 			return $this->conn->update('transactions', array('xml'=>$xml), array('code'=>$code));
 		} catch( Exception $e ){
-			$this->log($e->getMessage());
+			LogHelper::getInstance()->log($e->getMessage());
 		}
 		return false;
 	}
-	
+	*/
 	/**
 	 * Removes a transaction from the db
-	 * 
+	 *
 	 * @param string $code
 	 * @return boolean|number
-	 */
+	 
 	private function deleteTransaction($code){
 		try {
 			return $this->conn->delete('transactions', array('code'=>$code));
 		} catch( Exception $e ){
-			$this->log($e->getMessage());
+			LogHelper::getInstance()->log($e->getMessage());
 		}
 		return false;
 	}
-	
+	*/
 	
 	
 	
@@ -585,8 +564,8 @@ class PagSeguroSandBox {
 	
 	/**
 	 * Generate  fake transaction
-	 * 
-	 */
+	 *
+	 
 	private function generateTransaction() {
 
 		$items = $this->getOrderItems();
@@ -594,7 +573,7 @@ class PagSeguroSandBox {
 		$xml = new SimpleXMLElement("<transaction/>");
 	
 		$xml->date = date("c");
-		$code = $this->generateRandomString(self::TRANSACTION_CODE_LENGTH);
+		$code = UtilsHelper::generateRandomString(self::TRANSACTION_CODE_LENGTH);
 		$xml->code = $code;
 		if (isset($this->order['reference']))
 			$xml->reference = $this->order['reference'];
@@ -602,7 +581,7 @@ class PagSeguroSandBox {
 		$xml->lastEventDate = date("c");
 		$xml->paymentMethod->type = 1;
 		$xml->paymentMethod->code = 101;
-		$xml->grossAmount = number_format($this->calculateOrderTotal($items), 2, '.', '');
+		$xml->grossAmount = number_format(UtilsHelper::calculateOrderTotal($items), 2, '.', '');
 		$xml->discountAmount = "0.00";
 		$xml->feeAmount = "0.00";
 		$xml->netAmount = $xml->grossAmount;
@@ -659,21 +638,22 @@ class PagSeguroSandBox {
 		$data = array(
 			'code' => $code,
 			'xml' => $dom->saveXML(),
-			'date' => date('Y-m-d H:i:s')  
+			'date' => date('Y-m-d H:i:s')
 		);
 		
-		if( $this->saveTransaction( $data ) ){
+		$model = new TransactionsModel();
+		if( $model->save( $data ) ){
 			return  $code;
 		}
 		
 		return false;
 	}
-	
+	**/
 	/**
 	 * Extract items from a transaction xml string
-	 * 
+	 *
 	 * @return array
-	 */
+	 
 	private function getOrderItems() {
 		$i = 1;
 		$items = array();
@@ -687,13 +667,13 @@ class PagSeguroSandBox {
 		 
 		return $items;
 	}
-	
+	*/
 	/**
 	 * Cauculates the total of this transaction
-	 * 
+	 *
 	 * @param array $items
 	 * @return number
-	 */
+	 
 	private function calculateOrderTotal($items) {
 		$total = 0;
 		foreach ($items as $item)
@@ -701,12 +681,12 @@ class PagSeguroSandBox {
 		 
 		return $total;
 	}
-	
+	*/
 	/**
 	 * Validates required pagseguro params
-	 * 
+	 *
 	 * @return multitype:|string
-	 */
+	 
 	public function validateParams() {
 		if (!$this->order)
 			return array();
@@ -719,7 +699,7 @@ class PagSeguroSandBox {
 	
 		return implode(", ", $missing_params);
 	}
-	
+	*/
 	
 	
 	
@@ -736,7 +716,7 @@ class PagSeguroSandBox {
 	 * @param array $data
 	 * @param string $type
 	 * @return mixed
-	 */
+	 
 	protected function doRequest( $url, $data = array(), $type = 'get' ){
 		$curl = curl_init();
 		$opts = array();
@@ -759,7 +739,7 @@ class PagSeguroSandBox {
 			
 		return $result;
 	}
-	
+	*/
 	
 	
 	
@@ -771,19 +751,19 @@ class PagSeguroSandBox {
 	
 	/**
 	 * Tests request type
-	 * 
+	 *
 	 * @param string $type
 	 * @return boolean
-	 */
+	 
 	private function isRequest($type){
 		return strtoupper($_SERVER['REQUEST_METHOD']) == strtoupper($type) ? true : false;
 	}
-	
+	*/
 	/**
 	 * Gets all request params
-	 * 
+	 *
 	 * @return array
-	 */
+	 
 	private function getParams(){
 		$data = array();
 		if (!empty($_GET) || !empty($_POST)) {
@@ -791,13 +771,13 @@ class PagSeguroSandBox {
 		}
 		return $data;
 	}
-	
+	*/
 	/**
 	 * Gets a specific request param
-	 * 
+	 *
 	 * @param string $name
 	 * @return mixed
-	 */
+	 
 	private function getParam($name){
 		$data = array();
 		if (!empty($_GET[$name]) || !empty($_POST[$name])) {
@@ -808,7 +788,7 @@ class PagSeguroSandBox {
 		}
 		return $data;
 	}
-	
+	*/
 	
 	
 	
@@ -820,21 +800,22 @@ class PagSeguroSandBox {
 	
 	/**
 	 * Converts a status numer to a readable string
-	 * 
+	 *
 	 * @param string|number $status
 	 * @return string
-	 */
+	 
 	public function getStatusString($status){
-		return ( isset( $this->transaction_possible_status[(string)$status]) )? $this->transaction_possible_status[(string)$status] : false;
+		$status = UtilsHelper::getStatus((string)$status);
+		return ( !empty($status) )? $status : false;
 	}
-	
+	*/
 	/**
 	 * Gets a status class to use in html for colorcoded status
-	 * 
+	 *
 	 * @param string|number $status
 	 * @param string $type
 	 * @return string
-	 */
+	 
 	public function getStatusClass($status, $type = 'btn'){
 		$classes = array(
 			"1" => $type."-info",
@@ -850,13 +831,13 @@ class PagSeguroSandBox {
 		}
 		return '';
 	}
-	
+	*/
 	/**
 	 * Processes a specific db file from the sql folder
-	 * 
+	 *
 	 * @param string $name
 	 * @return Ambigous <boolean, unknown, string>|boolean
-	 */
+	 
 	private function createTable($name){
 		$db_file = BASE_PATH.'lib/sql/'.strtolower($name).'.sql';
 		if( file_exists($db_file)){
@@ -865,7 +846,7 @@ class PagSeguroSandBox {
 		}
 		return false;
 	}
-	
+	*/
 	
 
 	
@@ -876,10 +857,10 @@ class PagSeguroSandBox {
 	
 	/**
 	 * Returns the name of a payment type give it´s code
-	 * 
+	 *
 	 * @param string $type
 	 * @return Ambigous <string>|string
-	 */
+	 
 	protected function translatePaymentType($type){
 		$types = array(
 			"1" => "1 - Cartão de crédito",
@@ -894,13 +875,13 @@ class PagSeguroSandBox {
 		}
 		return '';
 	}
-	
+	*/
 	/**
 	 * Returns the name of a payment method given it´s code
-	 * 
+	 *
 	 * @param string $method
 	 * @return Ambigous <string>|string
-	 */
+	 
 	protected function translatePaymentMethod($method){
 		$methods = array(
 			"101" => "101 - Cartão de crédito Visa",
@@ -939,7 +920,7 @@ class PagSeguroSandBox {
 		}
 		return '';
 	}
-	
+	*/
 	
 	
 	
@@ -952,17 +933,17 @@ class PagSeguroSandBox {
 	 *
 	 * @param action $action
 	 * @return string
-	 */
+	 
 	private function url($action){
 		return BASE_URL.'?action='.$action;
 	}
-	
+	*/
 	/**
 	 * Prepares a simple xml string with Dom
 	 *
 	 * @param SimpleXMLElement $xml
 	 * @return string
-	 */
+	 
 	private function prepareXml($xml){
 		$dom = new DOMDocument('1.0');
 		$dom->preserveWhiteSpace = false;
@@ -972,24 +953,24 @@ class PagSeguroSandBox {
 		$dom->loadXML($xml->asXML());
 		return $dom->saveXML();
 	}
-	
+	*/
 	/**
 	 * Gets current hostname
 	 *
 	 * @return string
-	 */
+	 
 	public function getCurrentHost() {
 		$host = $_SERVER['HTTP_HOST'];
 		$uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
 		return $host.$uri;
-	}
+	}*/
 	
 	/**
 	 * Generates a random string given it´s length
 	 *
 	 * @param number $length
 	 * @return string
-	 */
+	 
 	private function generateRandomString($length) {
 		$characters = '0123456789ABCDEF-';
 		$randomString = '';
@@ -998,29 +979,20 @@ class PagSeguroSandBox {
 		}
 		return $randomString;
 	}
-	
+	*/
 	/**
 	 * Simple log method
 	 *
 	 * @param string $msg
 	 * @return boolean
-	 */
+	 
 	protected function log($msg){
 		$msg = $msg."\r\n\r\n";
 		$file_handle = fopen(BASE_PATH.self::LOG_FILE, 'w') or die("can't open log file");
 		fwrite($file_handle, $msg);
 		fclose($file_handle);
 		return true;
-	}
-	
+	}*/
 }
 
-if( !function_exists('printR')){
-	function printR( $data, $exit = false ){
-		echo'<pre>'.print_r($data, true ).'</pre>';
-		if( $exit ) exit;
-		return;
-	}
-
-}
 ?>

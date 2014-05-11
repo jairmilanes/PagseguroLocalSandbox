@@ -2,26 +2,26 @@
 /**
 * SQLite3 Database Class
 * By Timothy 'TiM' Oliver
-* 
+*
 * An abstraction database to help
 * simplify queries made to a SQLite database.
 *
 * Powered by the PHP Data Object (PDO) framework.
-*	
+*
 * ============================================================================
-* 
+*
 * Copyright (C) 2011 by Tim Oliver
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in
 * all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,7 +29,7 @@
 * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
-* 
+*
 */
 
 class SQLite3Database
@@ -91,7 +91,7 @@ class SQLite3Database
 	*/
 	function connect()
 	{
-		try 
+		try
 		{
 			//connect to the database file
 			$this->db = new MyPDO( 'sqlite:'.$this->db_file );
@@ -108,13 +108,13 @@ class SQLite3Database
 	/**
 	* Query Function
 	* Perform a general query on the SQLite database.
-	* 
+	*
 	* Arguments:
 	* $query 	- (str) - The SQLite query to execute. (NB: MUST be sanitized beforehand)
 	* $handle 	- (str) - A unique string ID that can be used to refer to this query later
-	* 
+	*
 	* Returns the result of the query
-	* 
+	*
 	*/
 	function query($query, $handle = '', $ignore_count = TRUE )
 	{
@@ -123,7 +123,7 @@ class SQLite3Database
 		if( preg_match( '%^(select)%is', $query ) > 0 )
 		{
 			try
-			{	
+			{
 				//perform the query
 				$result = $this->db->query( $query ); //PDO query method for result
 			}
@@ -154,9 +154,10 @@ class SQLite3Database
 			}
 			catch (PDOException $e )
 			{
+				printR($e, true);
 				//throw general exception
 				throw new Exception( 'SQLite3Database: '.$e->getMessage().' Query: '.$query );
-			}				
+			}
 
 			//if query was one that affected existing rows (ie UPDATE, DELETE etc), return the number of affected rows
 			if( preg_match( '%^(update|replace|delete)%is', $query ) > 0 )
@@ -174,7 +175,7 @@ class SQLite3Database
 
 	/**
 	* prepare
-	* Sanitizes a PHP query and its arguments to reduce the 
+	* Sanitizes a PHP query and its arguments to reduce the
 	* potential of SQL injection attacks.
 	*
 	* Arguments:
@@ -269,9 +270,9 @@ class SQLite3Database
 
 	/**
 	* Fetch Rows
-	* Iterates through all of the rows returned from a query and 
+	* Iterates through all of the rows returned from a query and
 	* returns one on each call of this method
-	* 
+	*
 	* $handle 			- (str) - Unique string ID of the handle to process
 	* $return_array 	- (bool) - Return as an associative array instead of an object
 	*/
@@ -284,7 +285,7 @@ class SQLite3Database
 		//init the output
 		$row = array();
 
-		//get one instance from the object			
+		//get one instance from the object
 		$row = $result->fetch(PDO::FETCH_ASSOC);
 		if( $row == NULL )
 			return NULL;
@@ -324,7 +325,7 @@ class SQLite3Database
 	* Args:
 	* $query		- (str) - The SQLite query (MUST be properly sanitized beforehand)
 	* $return_array - (bool) - Each row is an array instead of an object
-	*/		
+	*/
 	function get_rows( $query ='', $return_array = FALSE )
 	{
 		//perform the query
@@ -351,7 +352,7 @@ class SQLite3Database
 
 	/**
 	* Insert
-	* 
+	*
 	* Insert a new row into a table
 	*
 	* Arguments:
@@ -396,7 +397,7 @@ class SQLite3Database
 			if( $i < count( $data ) - 1)
 				$query .= ',';
 
-			$i++;				
+			$i++;
 		}
 
 		$query .= ' ) VALUES (';
@@ -417,7 +418,7 @@ class SQLite3Database
 			if( $i < count( $data ) - 1)
 				$query .= ',';
 
-			$i++;				
+			$i++;
 		}
 
 		//cap off the end
@@ -427,7 +428,7 @@ class SQLite3Database
 		$query = $this->prepare( $query, $arg_list );
 
 		//execute the query and return the results
-		return $this->query( $query );			
+		return $this->query( $query );
 	}
 
 
@@ -441,8 +442,8 @@ class SQLite3Database
 	* table 		- (array|string) 	 - name of table, and/or formatting (eg 'table' or array( 'tablename' => '%2t' ) )
 	* $data			- (array)			 - data to insert into table in name => value format (eg array( 'foo' => 'bar' ) )
 	* $where 		- (array) 			 - array stating 1 or more conditions of the update query (eg array('id' => 1) )
-	* $format 		- (array) (optional) - array dictating the data type of each data value (eg array( '%s', '%d' ) ) 
-	* $format_where - (array) (optional) - array dictating the data type of each where data value (eg array( '%s', '%d' ) ) 
+	* $format 		- (array) (optional) - array dictating the data type of each data value (eg array( '%s', '%d' ) )
+	* $format_where - (array) (optional) - array dictating the data type of each where data value (eg array( '%s', '%d' ) )
 	*/
 	function update( $table = '', $data = NULL, $where = NULL, $format = NULL, $where_format = NULL, $limit = 0 )
 	{
@@ -454,7 +455,7 @@ class SQLite3Database
 		$arg_list = array();
 
 		//begin building the query
-		$query = 'UPDATE';			
+		$query = 'UPDATE';
 
 		//set the table name in the query
 		if( is_array( $table ) ) //allow for different prefix
@@ -487,7 +488,7 @@ class SQLite3Database
 			if( $i < count( $data ) - 1)
 				$query .= ',';
 
-			$i++;			
+			$i++;
 		}
 
 		$query .= ' WHERE';
@@ -509,7 +510,7 @@ class SQLite3Database
 			if( $i < count( $where ) - 1)
 				$query .= 'AND ';
 
-			$i++;			
+			$i++;
 		}
 
 		//append limit if required
@@ -532,7 +533,7 @@ class SQLite3Database
 	*
 	* table 	- (array|string) 	 - name of table, and/or formatting (eg 'table' or array( 'tablename' => '%2t' ) )
 	* $where 	- (array) 			 - array stating 1 or more conditions of the update query (eg array('id' => 1) )
-	* $format 	- (array) (optional) - array dictating the data type of each data value (eg array( '%s', '%d' ) ) 
+	* $format 	- (array) (optional) - array dictating the data type of each data value (eg array( '%s', '%d' ) )
 	*/
 	function delete( $table = '', $where = NULL, $format = NULL, $limit = 0 )
 	{
@@ -577,7 +578,7 @@ class SQLite3Database
 			if( $i < count( $where ) - 1)
 				$query .= ' AND ';
 
-			$i++;			
+			$i++;
 		}
 
 		//append limit if specified
@@ -589,8 +590,10 @@ class SQLite3Database
 		//prepare/sanitze the query
 		$query = $this->prepare( $query, $arg_list );
 
+		
+		
 		//execute the query and return the results
-		return $this->query( $query );			
+		return $this->query( $query );
 	}
 
 	/**
@@ -660,7 +663,7 @@ class SQLite3Database
 * MyPDO Extended Class
 *
 * A class that inherits from PDO, but
-* fixes the functionality of the rowCount method using 
+* fixes the functionality of the rowCount method using
 * the COUNT(*) query hack.
 *
 * Written by Eli Sand. Sourced from PHP.net:
@@ -686,5 +689,5 @@ class MyPDO extends PDO {
 
 		return false;
 	}
-}	
+}
 ?>

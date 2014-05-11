@@ -1,6 +1,6 @@
-
+<?php $xml = ResponseHelper::getInstance()->getData('xml'); ?>
 <div id="checkout_process_form" style="margin: 10px; padding: 10px;" class="panel panel-success">
-	<form name="checkout_process" action="<?php echo $this->url('checkout_process');?>" method="post">
+	<form name="checkout_process" action="<?php echo UtilsHelper::url('checkout_process');?>" method="post">
 		<input name="code" type="hidden" value="<?php echo $xml->code;?>">
 		
 		<ul class="nav nav-tabs">
@@ -11,13 +11,12 @@
 		</ul>
 
 		<div class="tab-content">
-		
 			<div class="tab-pane active" id="info">
 				<div class="panel panel-default">
 					<div class="panel-body">
 						<ul class="list-group">
 							<li class="list-group-item"><h5><label>Code:</label><?php echo $xml->code; ?></h5></li>
-							<li class="list-group-item"><h5><label>Status:</label> <span class='label<?php echo $this->getStatusClass($xml->status, 'label'); ?>'><?php echo $this->getStatusString($xml->status); ?></span></h5></li>
+							<li class="list-group-item"><h5><label>Status:</label> <span class='label<?php echo UtilsHelper::getStatusClass($xml->status, 'label'); ?>'><?php echo UtilsHelper::getStatusString($xml->status); ?></span></h5></li>
 							<li class="list-group-item"><h5><label>Reference:</label><?php echo $xml->reference; ?></h5></li>
 							
 							<li class="list-group-item">

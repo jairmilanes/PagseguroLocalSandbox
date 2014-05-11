@@ -11,7 +11,7 @@
 <title></title>
 <meta name="description" content="">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <style type="text/css">
 body {
@@ -24,6 +24,8 @@ body {
 <link rel="stylesheet" href="css/snipet.css">
 <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js" type="text/javascript"></script>
 </head>
+
+
 <body id="sandbox">
 	<!--[if lt IE 7]>
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
@@ -33,10 +35,19 @@ body {
 			<div class="navbar-header">
 				<a class="navbar-brand" href="#">PagSeguro Local Sandbox</a>
 			</div>
-			<a href="<?php echo $this->url('settings');?>" type="button"
-				class="btn btn-success navbar-btn navbar-right" data-toggle="modal"
-				data-target="#transaction_view"> <span
-				class="glyphicon glyphicon-cog"></span>
+			<a href="<?php echo UtilsHelper::url('settings');?>"
+				type="button"
+				class="btn btn-success navbar-btn navbar-right"
+				data-toggle="modal"
+				data-target="#transaction_view">
+					<span class="glyphicon glyphicon-cog"></span>
+			</a>
+			<a href="<?php echo UtilsHelper::url('help');?>"
+				type="button"
+				class="btn btn-help navbar-btn navbar-right"
+				data-toggle="modal"
+				data-target="#transaction_view">
+					<span class="glyphicon glyphicon-question-sign"></span>
 			</a>
 		</div>
 	</div>
@@ -45,15 +56,15 @@ body {
 		<div class="row">
 			<div id="page-header" class="page-header col-md-12 pull-left">
 				<h2 class="pull-left">Transações</h2>
-				<a href="<?php echo $this->url('wipe');?>" id="remove_all"
+				<a href="<?php echo UtilsHelper::url('wipe');?>" id="remove_all"
 					data-toggle="modal" data-target="#transaction_view"
 					class="btn btn-danger pull-right">Limpar transações</a>
 			</div>
 		</div>
 		
 		<div class="row">
-			<div id="table_container" class="col-md-12" data-refresh="<?php echo $this->url('refresh'); ?>">
-				<?php require BASE_PATH.'includes/transactions_table.php'; ?>
+			<div id="table_container" class="col-md-12" data-refresh="<?php echo UtilsHelper::url('refresh'); ?>">
+				<?php require BASE_PATH.'view/transactions_table.php'; ?>
 			</div>
 		</div>
 
@@ -91,9 +102,10 @@ body {
 	<script src="js/vendor/bootstrap.min.js" type="text/javascript"></script>
 	<script src="js/plugins.js" type="text/javascript"></script>
 	<script src="js/snipet.js" type="text/javascript"></script>
+	<script src="js/vendor/loading.js" type="text/javascript"></script>
 	<script src="js/main.js" type="text/javascript"></script>
 
-	<?php require_once BASE_PATH.'includes/modal_settings_form.php'; ?>
+	<?php require_once BASE_PATH.'view/modal_settings_form.php'; ?>
 
 	<div id="transaction_view" class="modal fade">
 		<input id="hidden_code" name="code" value="" type="hidden" />
@@ -101,6 +113,9 @@ body {
 			<div class="modal-content"></div>
 		</div>
 	</div>
-
+	<div id="loading">
+	
+		<div class="backdrop"></div>
+	</div>
 </body>
 </html>

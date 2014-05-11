@@ -1,8 +1,11 @@
 <?xml version="1.0"?>
 <config>
-  <domain>ostemplates.localhost</domain>
+  <email>web@layoutz.com.br</email>
+  <domain>http://ostemplates.localhost</domain>
   <notificationUrl>/index.php?page=ajax&amp;action=runhook&amp;hook=lzds&amp;do=index/notify&amp;plugin=lz_payments&amp;method=pagseguro</notificationUrl>
+  <fixed_redirect>1</fixed_redirect>
   <redirectUrl>/index.php?page=ajax&amp;action=runhook&amp;hook=lzds&amp;do=index/paymentReturn&amp;plugin=lz_payments&amp;method=pagseguro</redirectUrl>
   <port>80</port>
   <checkout_complete>redirect</checkout_complete>
+  <token>UE0JQ2BGK0YIIY1Z33V4ABLFTNRP11QE</token>
 </config>
