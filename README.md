@@ -2,7 +2,7 @@
 PagSeguro Local SandBox
 ===============================================================
 
-### Sobre o PagSeguro LocalSandBox {.panel-title}
+### Sobre o PagSeguro LocalSandBox
 
 Teste sua integração com as API´s V2 do PagSeguro em seu servidor local
 com facilidade, integrações são complicadas por si só, e um ambiente de
