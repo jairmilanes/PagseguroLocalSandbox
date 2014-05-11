@@ -17,22 +17,23 @@ resultado.
 -   Envie notificações teste ilimitadas
 -   Conferir as dados  enviados ao PagSeguro
 -   Consultar transações por código
--   Consultar transações por intervalo de data          
-        
-   
+-   Consultar transações por intervalo de data    
+    
 
-
-
-
+**************************************************************************        
+         
+         
 ### Como funciona
 
 A Sandbox mascara as consultas feitas à api do PagSeguro permitindo
 testar todas as consultas antes de rodar testes com consultas reais já
 que o PagSeguro ainda não possui sua Sandbox, ainda assim você não teria
 tudo localmente.
+    
 
-
-
+**************************************************************************        
+         
+         
 ### Instalação
 
 
@@ -51,8 +52,11 @@ utilizar a Sandbox siga os passos abaixo.
 Duas opções de instalação, clone via github ou arquivo .zip. Escolha uma
 das opções e compie os arquivos para uma pasa em seu servidor local
 neste exemplo utilizamos “/pg\_localsandbox”.
+    
 
-
+**************************************************************************        
+         
+         
 ### Criando virtual hosts 
 
 É necessário adicionar duas entradas ao seu arquivo hosts ( Windows
@@ -103,52 +107,50 @@ Caso tenha ssl configurado segue abaix um exemplo de vHost para SSL:
 
 Com as entradas no arquivo hosts criadas e os vHosts configurados basta
 reiniciar seu Apache para que as alterações entrem em vigor.
+    
 
-
+**************************************************************************        
+         
+         
 ### Configuração 
 
 Quando acessar o painel pela primeira vez será necessário fornecer
 algumas informações, as mesmas informações fornecidas na configuração do
 PagSeguro:
 
+* **Email**
+  * Email de authenticação no PagSeguro
 
-#### Email
-Email de authenticação no PagSeguro
 
-
-#### Token
-Um token teste é fornecido, use este token teste mais o email informado
+* **Token**
+  * Um token teste é fornecido, use este token teste mais o email informado
 em todas as requisições à SandBox.
 
 
-#### Domínio
-O hostname local do website ou app integrando à Sandbox,
+* **Domínio**
+  * O hostname local do website ou app integrando à Sandbox,
 “meusite.localhost”
 
 
-#### Url de notificação
-Url utilizada na notificação de alteração de status, sem o hostname
+* **Url de notificação**
+  * Url utilizada na notificação de alteração de status, sem o hostname
 
 
-#### Redirecionamento fixo
-
-Caso utiliza o sistema de redirecionamento fixo click no checkbox para
+* **Redirecionamento fixo**
+  * Caso utiliza o sistema de redirecionamento fixo click no checkbox para
 ativar
 
 
-#### Url de redirecionamento
-
-Se optou pelo redirecimento fixo informe a url de redirecionamento.
-
-
-#### Porta
-
-Caso sua conexão utilize uma porta diferente da 80 informe aqui.
+* **Url de redirecionamento**
+  * Se optou pelo redirecimento fixo informe a url de redirecionamento.
 
 
-#### Após confirmação
+* **Porta**
+  * Caso sua conexão utilize uma porta diferente da 80 informe aqui.
 
-Esta opção permite que ao invés de ser redirecionado de volta ao seu
+
+* **Após confirmação**
+  * Esta opção permite que ao invés de ser redirecionado de volta ao seu
 site na finalizaçõa do pagamento a resposta deste request seja mostrada
 na tela. Isto pode ser utilizado para analizar a resposta do seu
 servidor ao retorno da transação ( foi util para min, achei que pudesse
@@ -159,8 +161,11 @@ Com a configuração completa tudo está pronto para seus testes.
 
 Integre o PagSeguro normalmente, o Sandbox irá masacarar todas as
 chamadas feitas a api.
+    
 
-
+**************************************************************************        
+         
+         
 ### Sandbox com ssl ( Opcional) 
 
 A utlização de ssl em seus testes locais podem não trazer tantos
@@ -170,8 +175,11 @@ integração, mas lembre-se o uso de ssl não é obrigatório.’
 Os passos abaixo descrevem brevemente como configurar ssl em seu
 servidor local, lembrando que estes passos podem variar dependendo da
 configuração local de cada um.
+    
 
-
+**************************************************************************        
+         
+         
 ### Tudo pronto! 
 
 Com estes passos executados você agora pode acessar o painel de
@@ -181,9 +189,11 @@ descreve em sua área para desenvolvedores.
 
   [http:\\/\\/ws.pagseguro.uol.com.br]: http://ws.pagseguro.uol.com.br
 
+    
 
-
-
+**************************************************************************        
+         
+         
 ### Contato 
 
 **Jair Milanes Junior**
