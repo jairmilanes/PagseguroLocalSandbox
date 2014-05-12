@@ -2,7 +2,7 @@
 PagSeguro Local SandBox
 ===============================================================
 
-### Sobre o PagSeguro LocalSandBox
+### Abiente de simulação local para as API´s V2 do PagSeguro
 
 Teste sua integração com as API´s V2 do PagSeguro em seu servidor local
 com facilidade, integrações são complicadas por si só, e um ambiente de
@@ -11,8 +11,8 @@ resultado.
 
 * * * * *
 
-#### **Com a Sandbox Local você pode:**
-
+#### **Com a Sandbox Local PagSeguro você pode:**
+ 
 -   Crie transações de teste ilimitadas
 -   Envie notificações teste ilimitadas
 -   Conferir as dados  enviados ao PagSeguro
