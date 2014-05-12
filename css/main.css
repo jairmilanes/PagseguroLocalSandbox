@@ -145,12 +145,25 @@
 /* ==========================================================================
    NOTIFICATIONS HISTORY
    ========================================================================== */
+#history h3 a {
+	margin-left: 7px;	
+}
+#history h3 a:hover {
+	color: #47a447;
+}
+#history .list-group-item:hover {
+	background: #f5f5f5;
+	cursor: pointer;
+}
 #history .list-group-item > span {
 	display: inline-block;
 	width: 65%;	
 }
-#history .list-group-item > span:last-child {
-	width: 30%;	
+#history .list-group-item > span.label {
+	width: 34.2%;	
+}
+#history .list-group-item > .pre pre {
+	margin-top: 10px;
 }
 /* ==========================================================================
    GENERIC MODAL

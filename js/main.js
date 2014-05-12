@@ -1,5 +1,7 @@
 $(document).ready(function(){
 
+	$('body [title]').tooltip();
+
 	$('#transaction_notify_submit').on('click', function(){
 		var btn = $(this);
 		btn.button('loading');

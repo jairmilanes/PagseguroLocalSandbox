@@ -1,4 +1,11 @@
 <?php
+/**
+ * ResponseHelper Class
+ *
+ * Response helper class
+ *
+ * @author Jair Milanes Junior
+ */
 class ResponseHelper extends SandboxHelper {
 	
 	protected $path;

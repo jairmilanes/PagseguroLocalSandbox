@@ -92,16 +92,36 @@ $history = ResponseHelper::getInstance()->getData('history');?>
 	<div id="history">
 		<div class="panel panel-default">
 			<div class="panel-heading">
-		    	<h3 class="panel-title">Histórico de notificações</h3>
+		    	<h3 class="panel-title">Histórico de notificações
+		    	<a href="#" title="Contract all responses" data-action="contract" class="pull-right"><span class="glyphicon glyphicon-chevron-up"></span></a>
+		    	<a href="#" title="Expand all responses" data-action="expand" class="pull-right"><span class="glyphicon glyphicon-chevron-down"></span></a></h3>
 		    </div>
 			<ul class="list-group">
 				<?php foreach($history as $entry){?>
-			  		<li class="list-group-item">
-			  			<span>Alterado em <strong><?php echo date('d/m/Y', strtotime($entry->date));?></strong> as <?php echo date('H:i', strtotime($entry->date));?></span>
+			  		<li class="list-group-item" data-toggle="tooltip" data-placement="left" title="Clique para ver a resposta">
+			  			<span>Alterado em <strong><?php echo date('d/m/Y', strtotime($entry->date));?></strong> as <strong><?php echo date('H:i', strtotime($entry->date));?></strong></span>
 			  			<span class="label <?php echo UtilsHelper::getStatusClass($entry->status, 'label')?>"><?php echo UtilsHelper::getStatus($entry->status);?></span>
+	  					<div class="clearfix"></div>
+	  					<div class="pre hidden">
+		  					<?php printR(htmlentities($entry->response)); ?>
+	  					</div>
 			  		</li>
 			  	<?php } ?>
 			</ul>
 		</div>
 	</div>
 </div>
+<script>
+$('#history li').on('click', function(){
+	$(this).find('.pre').toggleClass('hidden');
+});
+$('#history pre').snippet("php",{style:"whitengrey"});
+$('#history .panel-title a').on('click', function(e){
+	e.preventDefault();
+	if( $(this).data('action') == 'expand' ){
+		$('#history .list-group-item .pre').removeClass('hidden');
+	} else if($(this).data('action') == 'contract'){
+		$('#history .list-group-item .pre').addClass('hidden');
+	}
+});
+</script>

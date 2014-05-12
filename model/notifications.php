@@ -1,4 +1,12 @@
 <?php
+/**
+ * NotificationsModel Class
+ *
+ * Keeps generated notification codes each related to a transaction
+ *
+ * @author Jair Milanes Junior
+ *
+ */
 class NotificationsModel extends SandboxModel {
 	
 	public function __construct(){

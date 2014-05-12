@@ -1,4 +1,12 @@
 <?php
+/**
+ * UtilsHelper Static Class
+ *
+ * General utilities helper class
+ *
+ * @author Jair Milanes Junior
+ *
+ */
 class UtilsHelper extends SandboxHelper {
 	
 	/**
@@ -134,6 +142,10 @@ class UtilsHelper extends SandboxHelper {
 		return '';
 	}
 	
+	/**
+	 * Returns all possible status codes and string
+	 * @return array
+	 */
 	public static function getStatusArray(){
 		return array(
 				"1" => "Aguardando pagamento",
@@ -146,10 +158,15 @@ class UtilsHelper extends SandboxHelper {
 		);
 	}
 	
-	public static function getStatus($status){
+	/**
+	 * Gets a status string by code
+	 * @param string $status
+	 * @return Ambigous <string>|string
+	 */
+	public static function getStatus($status_code){
 		$array = self::getStatusArray();
-		if( isset( $array[$status])){
-			return $array[$status];
+		if( isset( $array[$status_code])){
+			return $array[$status_code];
 		}
 		return '';
 	}
@@ -203,6 +220,12 @@ class UtilsHelper extends SandboxHelper {
 		return $total;
 	}
 	
+	/**
+	 * Converts any simpleXmlObject to a associative array
+	 * @param SimpleXMLElement $xmlObject
+	 * @param array $out
+	 * @return array;
+	 */
 	public static function xml2array ( $xmlObject, $out = array () )
 	{
 		foreach ( (array) $xmlObject as $index => $node )
@@ -211,6 +234,10 @@ class UtilsHelper extends SandboxHelper {
 		return $out;
 	}
 	
+	/**
+	 * Returns a new DomDocument Instance
+	 * @return DOMDocument
+	 */
 	public static function newDOM(){
 		// write xml file with proper formatting
 		$dom = new DOMDocument('1.0');

@@ -1,4 +1,12 @@
 <?php
+/**
+ * NotificationStatusHistoryModel Class
+ *
+ * Keeps track of all notifications created
+ *
+ * @author Jair Milanes Junior
+ *
+ */
 class NotificationStatusHistoryModel extends SandboxModel {
 	
 	public function __construct(){
@@ -23,8 +31,31 @@ class NotificationStatusHistoryModel extends SandboxModel {
 	}
 	
 	public function getByCode($code){
-		$sql = 'SELECT code, status, date FROM %s WHERE code = "%s"';
-		$rs = $this->conn->get_rows(sprintf($sql, $this->getTablename(), $code));
+		$sql = 'SELECT
+					history.code,
+					history.status,
+					history.date,
+					response.response
+				FROM
+					%s as history
+					notifications_response as response
+				WHERE
+					history.code = "%s" AND response.code = "%s"';
+		
+		$sql = 'SELECT
+					history.code,
+					history.status,
+					history.date,
+					response.response
+				FROM
+					%s as history
+				LEFT JOIN
+					notifications_response as response
+					ON history.code = response.code
+				WHERE
+					history.code = "%s"';
+		
+		$rs = $this->conn->get_rows(sprintf($sql, $this->getTablename(), $code, $code));
 		if( !empty($rs)){
 			return $rs;
 		}

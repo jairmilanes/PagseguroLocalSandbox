@@ -114,7 +114,7 @@ body {
 	<script src="js/vendor/loading.js" type="text/javascript"></script>
 	<script src="js/main.js" type="text/javascript"></script>
 
-	<?php require_once BASE_PATH.'view/modal_settings_form.php'; ?>
+	<?php require_once BASE_PATH.'view/modal_transaction_notify.php'; ?>
 
 	<div id="transaction_view" class="modal fade">
 		<input id="hidden_code" name="code" value="" type="hidden" />
@@ -123,7 +123,6 @@ body {
 		</div>
 	</div>
 	<div id="loading">
-	
 		<div class="backdrop"></div>
 	</div>
 </body>
