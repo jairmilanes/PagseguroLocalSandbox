@@ -1,4 +1,6 @@
-<?php $xml = ResponseHelper::getInstance()->getData('xml'); ?>
+<?php $xml = ResponseHelper::getInstance()->getData('xml');
+$history = ResponseHelper::getInstance()->getData('history');
+?>
 <div id="checkout_process_form" style="margin: 10px; padding: 10px;" class="panel panel-success">
 	<form name="checkout_process" action="<?php echo UtilsHelper::url('checkout_process');?>" method="post">
 		<input name="code" type="hidden" value="<?php echo $xml->code;?>">
@@ -99,10 +101,10 @@
 						<?php if (is_array((array)$xml->items)) {
 							foreach ((array)$xml->items as $key => $item) {?>
 								<ul class="list-group">
-								<li class="list-group-item"><label>Id:</label><?php echo $item->id; ?></li> 
-								<li class="list-group-item"><label>Description:</label><?php echo $item->description; ?></li> 
-								<li class="list-group-item"><label>Quantidade:</label><?php echo $item->quantity; ?></li> 
-								<li class="list-group-item"><label>Amount:</label><?php echo $item->amount; ?></li> 
+								<li class="list-group-item"><label>Id:</label><?php echo $item->id; ?></li>
+								<li class="list-group-item"><label>Description:</label><?php echo $item->description; ?></li>
+								<li class="list-group-item"><label>Quantidade:</label><?php echo $item->quantity; ?></li>
+								<li class="list-group-item"><label>Amount:</label><?php echo $item->amount; ?></li>
 								</ul>
 							<?php }?>
 						<?php }?>
@@ -137,4 +139,17 @@
 		
 		</div>
 	</form>
+	<p class="clearfix"></p>
+	<div id="history">
+		<div class="panel panel-default">
+			<ul class="list-group">
+				<?php foreach($history as $entry){?>
+			  		<li class="list-group-item">
+			  			<span><?php echo $entry->date;?></span>
+			  			<span class="label"><?php echo $entry->status;?></span>
+			  		</li>
+			  	<?php } ?>
+			</ul>
+		</div>
+	</div>
 </div>

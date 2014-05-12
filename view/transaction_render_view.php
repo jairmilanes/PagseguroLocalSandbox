@@ -1,4 +1,5 @@
-<?php $xml = ResponseHelper::getInstance()->getData('xml');?>
+<?php $xml = ResponseHelper::getInstance()->getData('xml');
+$history = ResponseHelper::getInstance()->getData('history');?>
 <div style="margin: 10px; padding: 10px;" class="panel panel-info">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 		<ul class="nav nav-tabs">
@@ -50,10 +51,10 @@
 				<?php if (is_array((array)$xml->items)) {
 					foreach ((array)$xml->items as $key => $item) {?>
 						<ul class="list-group">
-						<li class="list-group-item"><label>Id:</label><?php echo $item->id; ?></li> 
-						<li class="list-group-item"><label>Description:</label><?php echo $item->description; ?></li> 
-						<li class="list-group-item"><label>Quantidade:</label><?php echo $item->quantity; ?></li> 
-						<li class="list-group-item"><label>Amount:</label><?php echo $item->amount; ?></li> 
+						<li class="list-group-item"><label>Id:</label><?php echo $item->id; ?></li>
+						<li class="list-group-item"><label>Description:</label><?php echo $item->description; ?></li>
+						<li class="list-group-item"><label>Quantidade:</label><?php echo $item->quantity; ?></li>
+						<li class="list-group-item"><label>Amount:</label><?php echo $item->amount; ?></li>
 						</ul>
 					<?php }?>
 				<?php }?>
@@ -87,4 +88,20 @@
 		<div class="footer">
 		
 		</div>
+		<p class="clearfix"></p>
+	<div id="history">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    	<h3 class="panel-title">Histórico de notificações</h3>
+		    </div>
+			<ul class="list-group">
+				<?php foreach($history as $entry){?>
+			  		<li class="list-group-item">
+			  			<span>Alterado em <strong><?php echo date('d/m/Y', strtotime($entry->date));?></strong> as <?php echo date('H:i', strtotime($entry->date));?></span>
+			  			<span class="label <?php echo UtilsHelper::getStatusClass($entry->status, 'label')?>"><?php echo UtilsHelper::getStatus($entry->status);?></span>
+			  		</li>
+			  	<?php } ?>
+			</ul>
 		</div>
+	</div>
+</div>

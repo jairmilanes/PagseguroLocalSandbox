@@ -19,7 +19,7 @@ body {
 	padding-bottom: 20px;
 }
 </style>
-<?php // <link rel="stylesheet" href="css/bootstrap-theme.min.css">?>
+<link rel="stylesheet" href="css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="css/main.css">
 <link rel="stylesheet" href="css/snipet.css">
 <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js" type="text/javascript"></script>
@@ -35,6 +35,15 @@ body {
 			<div class="navbar-header">
 				<a class="navbar-brand" href="#">PagSeguro Local Sandbox</a>
 			</div>
+			<a href="<?php echo UtilsHelper::url('help');?>"
+				type="button"
+				class="btn btn-warning btn-help navbar-btn navbar-right"
+				data-toggle="modal"
+				data-target="#transaction_view"
+				style="margin-left: 10px;">
+					<span class="glyphicon glyphicon-question-sign"></span>
+			</a>
+			
 			<a href="<?php echo UtilsHelper::url('settings');?>"
 				type="button"
 				class="btn btn-success navbar-btn navbar-right"
@@ -42,13 +51,7 @@ body {
 				data-target="#transaction_view">
 					<span class="glyphicon glyphicon-cog"></span>
 			</a>
-			<a href="<?php echo UtilsHelper::url('help');?>"
-				type="button"
-				class="btn btn-help navbar-btn navbar-right"
-				data-toggle="modal"
-				data-target="#transaction_view">
-					<span class="glyphicon glyphicon-question-sign"></span>
-			</a>
+			
 		</div>
 	</div>
 	

@@ -5,9 +5,12 @@ class ResponseHelper extends SandboxHelper {
 	
 	protected $data;
 	
+	protected $errors;
+	
 	protected static $instance;
 
 	public function __construct(){
+		$this->errors = array();
 		$this->path = BASE_PATH.'view/';
 	}
 	
@@ -65,6 +68,38 @@ class ResponseHelper extends SandboxHelper {
 	public function do200($msg = null){
 		http_response_code(200);
 		die(( is_null($msg)? 'OK': $msg ));
+	}
+	
+	public function addApiError($code, $msg){
+		$this->errors[] = array(
+			'code' => $code,
+			'message' => $msg
+		);
+		return $this;
+	}
+	
+	public function renderApiError(){
+		$dom = UtilsHelper::newDOM();
+		if( !empty($this->errors)){
+			$errors = $dom->createElement('errors');
+			$dom->appendChild($errors);
+			foreach( $this->errors as $error ){
+				$err = $dom->createElement('error');
+				$errors->appendChild($err);
+				$err->appendChild( $dom->createElement('code', $error['code'] ));
+				$err->appendChild( $dom->createElement('message', $error['message'] ));
+			}
+		}
+		self::renderXml($dom->saveXML(), 'ISO-8859-1', 400);
+	}
+	
+	public function returnApiRequestCode($code){
+		$dom = UtilsHelper::newDOM();
+		$checkout = $dom->createElement('checkout');
+		$dom->appendChild($checkout);
+		$checkout->appendChild($dom->createElement('code', (string)$code));
+		$checkout->appendChild($dom->createElement('date', date('Y-m-d\TH:i:s.\0\0\0P')));
+		self::renderXml($dom->saveXML(), 'ISO-8859-1');
 	}
 
 	public function getData($key = null){

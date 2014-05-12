@@ -80,10 +80,13 @@ class PagSeguroSandBox {
  *************************************************************************/
 	
 	/**
-	 * Simulates a PagSeguro transaction
-	 * returning a code ans date for rediraction
+	 * PagSeguro Checkout API
+	 *
+	 * @return string Xml containing code and current date
 	 */
 	public function checkout(){
+		
+		printR(RequestHelper::getParams(), true);
 		
 		$dom = UtilsHelper::newDOM();
 		
@@ -93,62 +96,42 @@ class PagSeguroSandBox {
 		$errors = $dom->createElement('errors');
 		$istokenValid = true;
 		if( !validateHelper::isValidToken($token) ){
-			$dom->appendChild($errors);
-			$error = $dom->createElement('error');
-			$errors->appendChild($error);
-			$error->appendChild( $dom->createElement('code', 10002 ));
-			$error->appendChild( $dom->createElement('message', 'Token is required.' ));
+			ResponseHelper::getInstance()->addApiError(10002, 'Token is required.');
 			$istokenValid = false;
 		}
+		
 		$isEmailValid= true;
 		if( !validateHelper::isValidEmail($email)){
-			if( !$istokenValid ){
-				$dom->appendChild($errors);
-			}
-			$error = $dom->createElement('error');
-			$errors->appendChild($error);
-			$error->appendChild( $dom->createElement('code', 10003 ));
-			$error->appendChild( $dom->createElement('message', 'Email invalid value.' ));
+			ResponseHelper::getInstance()->addApiError(10003, 'Email invalid value.');
 			$isEmailValid = false;
 		}
+		
 		if(!$istokenValid || !$isEmailValid){
-			ResponseHelper::getInstance()->renderXml($dom->saveXML(), 'ISO-8859-1', 400);
+			ResponseHelper::getInstance()->renderApiError();
 		}
-		
-		
+
 		$this->order = RequestHelper::getParams();
+		
+		
+		printR(validateHelper::validateCheckout($this->order), true);
+		
+		
 
 		$code = TransactionsHelper::generateTransaction( $this->order );
 		$model = new TransactionCodesModel();
 		
 		$request_code = $model->save($code);
 
-		
-		
 		if( false !== $request_code ){
-			
-			$checkout = $dom->createElement('checkout');
-			$dom->appendChild($checkout);
-			$checkout->appendChild($dom->createElement('code', (string)$request_code));
-			$checkout->appendChild($dom->createElement('date', date('Y-m-d\TH:i:s.\0\0\0P')));
-			ResponseHelper::getInstance()->renderXml($dom->saveXML(), 'ISO-8859-1');
-			
+			ResponseHelper::getInstance()->returnRequestCode($request_code);
 		} else {
-			
-			$errors = $dom->createElement('errors');
-			$dom->appendChild($errors);
-			$error = $dom->createElement('error');
-			$errors->appendChild($error);
-			$error->appendChild( $dom->createElement('code', 11039 ));
-			$error->appendChild( $dom->createElement('message', 'Malformed request XML' ));
-			ResponseHelper::getInstance()->renderXml($dom->saveXML(), 'ISO-8859-1', 400);
-			
+			ResponseHelper::getInstance()->addApiError(11039, 'Malformed request XML')->renderApiError();
 		}
-
+		
 	}
 	
 	/**
-	 * Procceses the checkout information
+	 * Process the payment request code
 	 */
 	public function checkoutProcess(){
 
@@ -171,17 +154,24 @@ class PagSeguroSandBox {
 				ResponseHelper::getInstance()->do400();
 			}
 		}
+		
 		$notificationsModel = new TransactionCodesModel();
 		$xml = $notificationsModel->getByCheckoutCode($code);
-
+		
+		$historyModel = new NotificationStatusHistoryModel();
+		$history = $historyModel->getByCode($code);
+		if( empty($history) ){
+			$history = array();
+		}
+		
 		if( !empty($xml) ){
 			$type = RequestHelper::getParam('type');
 			switch($type){
 				case 'full':
-					ResponseHelper::getInstance()->render('transaction_render_fullcheckout', array('xml' => $xml));
+					ResponseHelper::getInstance()->render('transaction_render_fullcheckout', array('xml' => $xml, 'history' => $history));
 					break;
 				default:
-					ResponseHelper::getInstance()->render('transaction_render_checkout', array('xml' => $xml));
+					ResponseHelper::getInstance()->render('transaction_render_checkout', array('xml' => $xml, 'history' => $history));
 					break;
 			}
 		}
@@ -216,6 +206,10 @@ class PagSeguroSandBox {
 	private function _notify($transaction_code, $status){
 		$notification = $this->generateNotification($transaction_code, $status);
 		if( false !== $notification ){
+			
+			$model = new NotificationStatusHistoryModel();
+			$model->insert($transaction_code, $status);
+			
 			$url = $this->config->get('domain').$this->config->get('notificationUrl');
 			return RequestHelper::doRequest($url, $notification, 'POST');
 		}
@@ -266,6 +260,25 @@ class PagSeguroSandBox {
 			ResponseHelper::getInstance()->do401();
 		}
 	}
+	
+	/**
+	 * Searches a transaction by transaction code
+	 */
+	public function searchTransactionByDate(){
+		$params = RequestHelper::getParams();
+		if( isset($params['code'])
+				&& isset($params['email']) && isset($params['token']) ){
+			$model = new TransactionsModel();
+			$rs = $model->get($params['code']);
+			if( !empty($rs) ){
+				$xml = simplexml_load_string($rs->xml);
+				die($xml->asXML());
+			}
+			ResponseHelper::getInstance()->do404();
+		} else {
+			ResponseHelper::getInstance()->do401();
+		}
+	}
 
 	/**
 	 * View a specific transaction
@@ -275,8 +288,14 @@ class PagSeguroSandBox {
 		$model = new TransactionsModel();
 		$rs = $model->get($code, true);
 		if( $rs ){
+			$historyModel = new NotificationStatusHistoryModel();
+			$history = $historyModel->getByCode($code);
+			if( empty($history) ){
+				$history = array();
+			}
+			
 			$xml = simplexml_load_string($rs['xml']);
-			ResponseHelper::getInstance()->render('transaction_render_view', array('xml' => $xml));
+			ResponseHelper::getInstance()->render('transaction_render_view', array('xml' => $xml, 'history' => $history));
 		}
 		ResponseHelper::getInstance()->do404();
 	}
