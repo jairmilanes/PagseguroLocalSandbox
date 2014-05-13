@@ -35,7 +35,7 @@ class PagSeguroSandBox {
 	 */
 	public function v2Checkout(){
 		
-		printR(RequestHelper::getParams(), true);
+		//printR(RequestHelper::getParams(), true);
 		
 		$dom = UtilsHelper::newDOM();
 		
@@ -62,7 +62,7 @@ class PagSeguroSandBox {
 		$this->order = RequestHelper::getParams();
 		
 		
-		printR(validateHelper::validateCheckout($this->order), true);
+		//printR(validateHelper::validateCheckout($this->order), true);
 
 
 		$code = TransactionsHelper::generateTransaction( $this->order );
@@ -71,7 +71,7 @@ class PagSeguroSandBox {
 		$request_code = $model->save($code);
 
 		if( false !== $request_code ){
-			ResponseHelper::getInstance()->returnRequestCode($request_code);
+			ResponseHelper::getInstance()->returnApiRequestCode($request_code);
 		} else {
 			ResponseHelper::getInstance()->addApiError(11039, 'Malformed request XML')->renderApiError();
 		}
