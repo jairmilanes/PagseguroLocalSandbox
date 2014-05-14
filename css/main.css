@@ -19,9 +19,10 @@
 	float: left;
 	height: 50px;
 	width: 364px;
-	background: url("../img/logo_nav_bar.png") no-repeat 15px 0;
+	background: url("../img/logo_nav_bar.png") no-repeat 15px 8px;
 	text-indent: -9999px;
 	overflow: hidden;
+	background-size: 60%; 
 }
 
 /* ==========================================================================
