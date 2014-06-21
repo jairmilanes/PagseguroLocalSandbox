@@ -62,7 +62,7 @@ class PagSeguroSandBox {
 		$this->order = RequestHelper::getParams();
 		
 		
-		//printR(validateHelper::validateCheckout($this->order), true);
+		printR(validateHelper::validateCheckout($this->order), true);
 
 
 		$code = TransactionsHelper::generateTransaction( $this->order );
