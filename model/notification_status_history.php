@@ -53,7 +53,8 @@ class NotificationStatusHistoryModel extends SandboxModel {
 					notifications_response as response
 					ON history.code = response.code
 				WHERE
-					history.code = "%s"';
+					history.code = "%s"
+				GROUP BY history.status';
 		
 		$rs = $this->conn->get_rows(sprintf($sql, $this->getTablename(), $code, $code));
 		if( !empty($rs)){

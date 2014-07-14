@@ -40,9 +40,16 @@ body {
 	<p>&nbsp;</p>
 	<div class="container">
 		<div class="row">
-			<div class="col-md-12">
+			<div class="col-md-7">
 				<?php require BASE_PATH.'view/transaction_render_checkout.php'; ?>
 				<p>Clique aqui para ver a <a target="_blank" href="https://pagseguro.uol.com.br/v2/guia-de-integracao/api-de-pagamentos.html">documentação do PagSeguro</a>
+			</div>
+			<div class="col-md-5">
+				<div class="panel panel-success panel-default">
+					<div id="api" class="panel-body">
+						<?php //require "params_info_table.php";?>
+					</div>
+				</div>
 			</div>
 			<div class="col-md-12">
 				<div class="form-group">
@@ -60,6 +67,70 @@ body {
 	<script src="<?php echo BASE_URL?>js/main.js" type="text/javascript"></script>
 	<script>
 	$(document).ready(function(){
+
+		var json = [];
+
+		var format_param = function(param){
+			var par = param.split('</strong>');
+			return par[1].trim();
+		}
+		
+		
+		console.log(json);
+
+		transaction_method_select();
+		
+		/*
+		$('#api table tbody > tr').each(function(i, elem){
+
+			var self = $(elem);
+			var params = $('td:eq(1) > p', self).eq(2).html();
+
+
+			console.log(params);
+
+			
+			if( params ){
+
+				params = params.split('<br>');
+				var item = {};
+				
+				if( $('td:first-child', self).find('.tab1').length > 0 ){
+					var tabs = $('td:first-child div[class^="tab"]', self);
+					var base = {};
+					
+					for(var i=0; i<tabs.length; i++){
+						//var tabs.eq(i).text() = {}
+						
+					}
+						
+					json = { 
+						checkout: {
+							item: {
+
+							}
+						}
+					}
+					
+				} else {
+					item.param 			= $('td:first-child', self).html().trim();
+				}
+
+					item.title 			= $('td:eq(1) > p', self).eq(0).text().trim();
+					item.description 	= $('td:eq(1) > p', self).eq(1).html().trim();
+					item.presence 		= format_param(params[0]);
+					item.type 			= format_param(params[1]);
+					item.format 		= format_param(params[2]);
+
+					json.push(item);
+			}
+			self = null;
+			params = null;
+
+		});
+		*/ 
+
+		
 		$('#transaction_submit').on('click', function(){
 			var btn = $(this);
 			btn.button('loading');

@@ -70,6 +70,7 @@ class TransactionsModel extends SandboxModel {
 	 * @param string $code
 	 */
 	public function update($xml, $code){
+		
 		try {
 			return $this->conn->update($this->getTablename(), array('xml'=>$xml), array('code'=>$code));
 		} catch( Exception $e ){

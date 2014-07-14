@@ -1,0 +1,2 @@
+SQLite3Database: SQLSTATE[HY000]: General error: 1 no such column: code Query: DELETE FROM notifications WHERE code = '6D3370C-18DCCB6A1B1BD-43A82-E47108BE';
+

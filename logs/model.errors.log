@@ -1,0 +1,2 @@
+SQLite3Database: SQLSTATE[HY000]: General error: 1 no such table: transactions_codes Query: INSERT INTO transactions_codes  ( code, transaction_code ) VALUES ( 'CE3-2CCDBA09984B5723A97D7ED91014', '3FE34911791D67050D2C--EC0F2D0B3FF476' );
+

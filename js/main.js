@@ -44,6 +44,9 @@ $(document).ready(function(){
 
 });
 
+
+
+
 function refreshResponse(html){
 	$('#server_response .snippet-container').remove();
 	$('#server_response pre').remove();

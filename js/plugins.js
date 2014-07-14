@@ -21,4 +21,23 @@
     }
 }());
 
+function transaction_method_select(){
+	$('select[name="paymentMethod[type]"]').on('change', function(e){
+		var value = $(this).val();
+		var self 	 = $(this);
+		var target = $('select[name="paymentMethod[code]"]');
+		if( value ){
+			$.getJSON("/data/payment_methods.json", function(data) {
+				var options = data[value];
+				if( options.title ){
+					target.html('');
+					$.each( options.options, function(code, title){
+						target.append('<option value="'+code+'">'+title+'</option>');
+					});
+				}
+			});	
+		}
+	});
+	$('select[name="paymentMethod[type]"]').trigger('change');
+}
 // Place any jQuery/helper plugins in here.

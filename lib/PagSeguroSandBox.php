@@ -42,7 +42,7 @@ class PagSeguroSandBox {
 		$token = RequestHelper::getParam('token');
 		$email = RequestHelper::getParam('email');
 		
-		$errors = $dom->createElement('errors');
+		//$errors = $dom->createElement('errors');
 		$istokenValid = true;
 		if( !validateHelper::isValidToken($token) ){
 			ResponseHelper::getInstance()->addApiError(10002, 'Token is required.');
@@ -60,11 +60,27 @@ class PagSeguroSandBox {
 		}
 
 		$this->order = RequestHelper::getParams();
+		//printR($this->order);
+		//printR($this->order, true);
+
+		$isValid = validateHelper::validateCheckout($this->order);
 		
 		
-		printR(validateHelper::validateCheckout($this->order), true);
+		//printR($isValid, true);
 
+		if( is_array($isValid)){
+			$errors = $isValid;
+			foreach( $errors as $error ){
+				ResponseHelper::getInstance()->addApiError($error['code'], $error['message']);
+			}
+			ResponseHelper::getInstance()->renderApiError();
+		}
+		
+		$this->order = validateHelper::get_valids();
 
+		//printR($this->order, true);
+		
+		
 		$code = TransactionsHelper::generateTransaction( $this->order );
 		$model = new TransactionCodesModel();
 		

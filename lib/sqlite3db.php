@@ -154,7 +154,7 @@ class SQLite3Database
 			}
 			catch (PDOException $e )
 			{
-				printR($e, true);
+				//printR($e, true);
 				//throw general exception
 				throw new Exception( 'SQLite3Database: '.$e->getMessage().' Query: '.$query );
 			}

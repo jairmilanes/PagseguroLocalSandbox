@@ -1,0 +1,49 @@
+SQLite3Database: SQLSTATE[HY000]: General error: 1 table transactions has no column named xml Query: INSERT INTO transactions  ( code, xml ) VALUES ( '0C7CA97F188C-E3462B26146F35-81C01160', '<?xml version="1.0"?>
+<transaction>
+  <date>2014-05-01T21:25:42-03:00</date>
+  <code>0C7CA97F188C-E3462B26146F35-81C01160</code>
+  <reference>plans_1</reference>
+  <lastEventDate>2014-05-01T21:25:42-03:00</lastEventDate>
+  <paymentMethod>
+    <type>1</type>
+    <code>101</code>
+  </paymentMethod>
+  <grossAmount>1.00</grossAmount>
+  <discountAmount>0.00</discountAmount>
+  <feeAmount>0.00</feeAmount>
+  <netAmount>1.00</netAmount>
+  <extraAmount>0.00</extraAmount>
+  <installmentCount>1</installmentCount>
+  <itemCount>1</itemCount>
+  <items>
+    <item>
+      <id>26</id>
+      <description>Plano 7 dias</description>
+      <quantity>1</quantity>
+      <amount>1.00</amount>
+    </item>
+  </items>
+  <sender>
+    <name>1</name>
+    <email>1</email>
+    <phone>
+      <areaCode>1</areaCode>
+      <number>1</number>
+    </phone>
+  </sender>
+  <shipping>
+    <address>
+      <street>Av. do Contorno</street>
+      <number>500</number>
+      <complement>2o Andar</complement>
+      <district>Funcion&#xE1;rios</district>
+      <postalCode>30110039</postalCode>
+      <city>Belo Horizonte</city>
+      <state>MG</state>
+      <country>BRA</country>
+    </address>
+    <type>3</type>
+    <cost>0.00</cost>
+  </shipping>
+</transaction>
+' );
