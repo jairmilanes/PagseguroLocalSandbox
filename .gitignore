@@ -1,2 +1,6 @@
 _includes/
 ARQUIVOS/
+.buildpath
+.project
+.settings/org.eclipse.core.resources.prefs
+.settings/org.eclipse.php.core.prefs
