@@ -1,2 +1,0 @@
-SQLite3Database: SQLSTATE[23000]: Integrity constraint violation: 19 column code is not unique Query: INSERT INTO notification_status_history  ( code, status, date ) VALUES ( 'F43C99953DDCD32-E0D0027CDD807060808B', '4', '2014-07-13 12:31:32' );
-
