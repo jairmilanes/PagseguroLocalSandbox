@@ -40,4 +40,3 @@ function transaction_method_select(){
 	});
 	$('select[name="paymentMethod[type]"]').trigger('change');
 }
-// Place any jQuery/helper plugins in here.

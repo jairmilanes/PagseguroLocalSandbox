@@ -7,5 +7,5 @@
   <redirectUrl>/index.php?page=ajax&amp;action=runhook&amp;hook=lzds&amp;do=index/paymentReturn&amp;plugin=lz_payments&amp;method=pagseguro</redirectUrl>
   <port>80</port>
   <checkout_complete>redirect</checkout_complete>
-  <token>YEM35ZZAK2NL2B8X5I89BDKR9QTM5PYA</token>
+  <token>JODKTOZ66FT3N9EUBQ18LURAGB3ZTBLS</token>
 </config>

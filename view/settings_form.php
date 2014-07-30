@@ -21,21 +21,24 @@ $config = json_decode(json_encode($config));
 			  </td>
 			</tr>
       		<tr>
-      			<td>
+      			<td class="token">
 				  <div class="form-group">
-				    <label for="new_token" class="col-sm-4 col-md-4 control-label">Token teste</label>
+				    <label for="new_token" class="col-sm-4 col-md-4 control-label">Token</label>
 				    <div class="col-sm-7 col-md-7">
-				      <p class="static-control"><strong class="label label-success" style="font-size:14px;"><?php echo @$config->token;?></strong></p>
-				      
-				      <div class="checkbox">
+				      <p class="static-control">
+				      	<strong class="label" id="pg_token"><?php echo @$config->token;?></strong>
+				      	<a href="#" data-clipboard-target="pg_token" id="copy_pg_token" class="btn btn-warning"><i class="glyphicon glyphicon-transfer"></i></a>
+				      </p>
+				      <div class="checkbox" style="padding:0;">
 					      <label>
-					      	<input type="checkbox" id="new_token" name="new_token">
-					      	Novo token?
+					      	Novo token? &nbsp;&nbsp; 
+					      	<input  data-size="small" data-on-text="sim" data-off-text="não" type="checkbox" id="new_token" name="new_token">
 					      </label>
 					  </div>
 				    </div>
 				    <div class="col-sm-1 col-md-1"><span class="glyphicon glyphicon-question-sign"></span></div>
 				  </div>
+				  <div class="bg-success pg_token_copied"><span><i class="glyphicon glyphicon-ok text-success"></i></span></div>
 			  </td>
 			</tr>
       		<tr>
@@ -65,7 +68,7 @@ $config = json_decode(json_encode($config));
 				  <div class="form-group">
 				    <label for="fixed_redirect" class="col-sm-4 col-md-4 control-label">Redirecionament fixo?</label>
 				    <div class="col-sm-7 col-md-7">
-				       <input type="checkbox" id="fixed_redirect" name="fixed_redirect" <?php echo ( ($config->fixed_redirect !== '1')? '' : 'checked=checked' );?>>
+				       <input type="checkbox" data-size="small"  data-on-text="Sim" data-off-text="Não" id="fixed_redirect" name="fixed_redirect" <?php echo ( ($config->fixed_redirect !== '1')? '' : 'checked=checked' );?>>
 				    </div>
 				    <div class="col-sm-1 col-md-1"><span class="glyphicon glyphicon-question-sign"></span></div>
 				  </div>
@@ -115,6 +118,22 @@ $config = json_decode(json_encode($config));
     </div>
 </form>
 <script>
+$("#settings [type='checkbox']").bootstrapSwitch();
+//main.js
+var client = new ZeroClipboard( document.getElementById("copy_pg_token") );
+
+client.on( "ready", function( readyEvent ) {
+  // alert( "ZeroClipboard SWF is ready!" );
+  client.on( "aftercopy", function( event ){
+	  $('td.token > .pg_token_copied').addClass('on');
+	  setTimeout(function(){
+		  $('td.token > .pg_token_copied').removeClass('on');	
+	  },1500);
+	  return false;
+  });
+} );
+
+
 $('#fixed_redirect').on('change', function(){;
 	if( $(this).prop('checked') ){
 		$('#fixed_redirect_depend').slideDown('fast');

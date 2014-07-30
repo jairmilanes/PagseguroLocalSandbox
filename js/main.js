@@ -39,6 +39,8 @@ $(document).ready(function(){
 	$('.clear_response').on('click', function(){
 		refreshResponse('');
 	});
+	
+	$("[type='checkbox']").bootstrapSwitch();
 
 	transactionsInit();
 

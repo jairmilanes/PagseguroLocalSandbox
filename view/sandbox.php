@@ -22,6 +22,7 @@ body {
 <link rel="stylesheet" href="css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="css/main.css">
 <link rel="stylesheet" href="css/snipet.css">
+<link rel="stylesheet" href="js/vendor/switch/css/bootstrap3/bootstrap-switch.min.css">
 <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js" type="text/javascript"></script>
 </head>
 
@@ -112,6 +113,8 @@ body {
 	<script src="js/plugins.js" type="text/javascript"></script>
 	<script src="js/snipet.js" type="text/javascript"></script>
 	<script src="js/vendor/loading.js" type="text/javascript"></script>
+	<script src="js/vendor/switch/js/bootstrap-switch.min.js" type="text/javascript"></script>
+	<script src="js/vendor/zero_clipboard/ZeroClipboard.js" type="text/javascript"></script>
 	<script src="js/main.js" type="text/javascript"></script>
 
 	<?php require_once BASE_PATH.'view/modal_transaction_notify.php'; ?>
