@@ -128,5 +128,10 @@ body {
 	<div id="loading">
 		<div class="backdrop"></div>
 	</div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			transactionsInit();
+		});
+	</script>
 </body>
 </html>

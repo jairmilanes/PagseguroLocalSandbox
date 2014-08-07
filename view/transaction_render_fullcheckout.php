@@ -67,16 +67,12 @@ body {
 	<script src="<?php echo BASE_URL?>js/main.js" type="text/javascript"></script>
 	<script>
 	$(document).ready(function(){
-
+		
 		var json = [];
-
 		var format_param = function(param){
 			var par = param.split('</strong>');
 			return par[1].trim();
 		}
-		
-		
-		console.log(json);
 
 		transaction_method_select();
 		

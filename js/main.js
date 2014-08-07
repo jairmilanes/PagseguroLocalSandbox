@@ -39,10 +39,8 @@ $(document).ready(function(){
 	$('.clear_response').on('click', function(){
 		refreshResponse('');
 	});
-	
-	$("[type='checkbox']").bootstrapSwitch();
 
-	transactionsInit();
+	
 
 });
 
@@ -57,6 +55,9 @@ function refreshResponse(html){
 }
 
 function transactionsInit(){
+	
+	$("[type='checkbox']").bootstrapSwitch();
+	
 	$('td.status a').on('click', function(){
 		$('input#hidden_code').val($(this).data('code'));
 		$(this).parents('tr').addClass('warning');
